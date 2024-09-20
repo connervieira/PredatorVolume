@@ -1,0 +1,9 @@
+# To-Do
+
+This is an informal to-do list for Predator Volume. It is not a comprehensive change-log, nor is it an official declaration of upcoming features.
+
+- [ ] Handle metadata.
+    - [ ] Extract metadata.
+        - [ ] Determine time-stamp.
+        - [ ] Determine GPS location
+    - [ ] Associate metadata with frames with plates.

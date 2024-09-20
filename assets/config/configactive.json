@@ -1,0 +1,14 @@
+{
+    "alpr": {
+        "engine": "phantom",
+        "validation": {
+            "confidence": 0.8,
+            "guesses": 15,
+            "best_effort": false,
+            "templates": ["AAA0000", "AAA000"]
+        }
+    },
+    "display": {
+        "debug_messages": true
+    }
+}
