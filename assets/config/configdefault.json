@@ -1,8 +1,9 @@
 {
     "alpr": {
         "engine": "phantom",
+        "region": "us",
         "validation": {
-            "confidence": 0.8,
+            "confidence": 0.7,
             "guesses": 15,
             "best_effort": false,
             "templates": ["AAA0000", "AAA000"]
@@ -10,5 +11,32 @@
     },
     "display": {
         "debug_messages": false
+    },
+    "behavior": {
+        "metadata": {
+            "time": {
+                "method": "overlay",
+                "overlay": {
+                    "format": "",
+                    "bounding_box": {
+                        "x": 0,
+                        "y": 0,
+                        "w": 0,
+                        "h": 0
+                    }
+                }
+            },
+            "gps": {
+                "method": "overlay",
+                "overlay": {
+                    "bounding_box": {
+                        "x": 0,
+                        "y": 0,
+                        "w": 0,
+                        "h": 0
+                    }
+                }
+            }
+        }
     }
 }

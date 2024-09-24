@@ -1,3 +1,5 @@
+# This is the main script that should be run to start Predator Volume. To configure it's functionality, see the './assets/config/configactive.json' file.
+
 # Copyright (C) 2024 V0LT - Conner Vieira 
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -27,7 +29,7 @@ working_directory_contents = os.listdir(working_directory) # Get the contents of
 videos_to_analyze = [] # This is a placeholder that will hold all video files to analyze.
 for file in working_directory_contents: # Iterate over each file in the working directory.
     filename_split = os.path.splitext(file) # Split the name of this file into the base-name and extension.
-    if (filename_split[1].lower() in [".mp4", ".m4v", ".webm", ".mjpg", ".mjpeg", ".mkv", ".flv"]): # Check to see if this file is a supported video file.
+    if (filename_split[1].lower() in [".mp4", ".m4v", ".webm", ".mjpg", ".mjpeg", ".mkv", ".flv", ".ts"]): # Check to see if this file is a supported video file.
         videos_to_analyze.append(file) # Add this video to the files to analze.
 
 if (len(videos_to_analyze) > 0):

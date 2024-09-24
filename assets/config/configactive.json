@@ -1,14 +1,45 @@
 {
     "alpr": {
         "engine": "phantom",
+        "region": "eu",
         "validation": {
-            "confidence": 0.8,
+            "confidence": 0.75,
             "guesses": 15,
             "best_effort": false,
-            "templates": ["AAA0000", "AAA000"]
+            "templates": [
+                "AAA0000",
+                "AA00AAAA"
+            ]
         }
     },
     "display": {
-        "debug_messages": true
+        "debug_messages": false
+    },
+    "behavior": {
+        "metadata": {
+            "time": {
+                "method": "overlay",
+                "overlay": {
+                    "format": "%m/%d/%Y %a %H:%M:%S",
+                    "bounding_box": {
+                        "x": 1484,
+                        "y": 1022,
+                        "w": 376,
+                        "h": 34
+                    }
+                }
+            },
+            "gps": {
+                "method": "overlay",
+                "overlay": {
+                    "bounding_box": {
+                        "x": 940,
+                        "y": 1022,
+                        "w": 395,
+                        "h": 34
+                    }
+                }
+            }
+        }
     }
 }

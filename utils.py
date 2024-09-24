@@ -17,11 +17,17 @@ try:
     if (os.path.exists(base_directory + "/assets/config/configactive.json")):
         config = json.load(open(base_directory + "/assets/config/configactive.json")) # Load the configuration from configactive.json
     else:
-        print("The configuration file doesn't appear to exist at " + predator_root_directory + "/assets/config/config.json.")
+        print("The configuration file doesn't appear to exist at '" + predator_root_directory + "/assets/config/configactive.json'.")
         exit()
 except:
     print("The configuration database couldn't be loaded. It may be corrupted.")
     exit()
+
+import cv2 # Required to process images/videos
+import pytesseract # Required to read text from the OSD
+from PIL import Image # Required to load images into pytesseract
+import datetime # Required to convert human-friendly dates to Unix timestamps
+import time
 
 
 
@@ -51,7 +57,7 @@ import time # Required to add delays and handle dates/times
 
 
 # This function prints debug messages with time information.
-debugging_time_record = 0
+debugging_time_record = time.time() # Initialize the first debug message time as the current time.
 def debug_message(message):
     if (config["display"]["debug_messages"] == True): # Only print the message if the debugging output configuration value is set to true.
         global debugging_time_record
@@ -75,10 +81,12 @@ def clear(force=False):
 
 
 # This function determines if a given string is valid JSON.
-def is_json(string):
+def is_json(string, verbose=False):
     try:
         json_object = json.loads(string) # Try to load string as JSON information.
     except ValueError as error_message: # If the process fails, then the string is not valid JSON.
+        if (verbose == True):
+            print(error_message) # Print the error message that caused the JSON load to fail.
         return False # Return 'false' to indicate that the string is not JSON.
 
     return True # If the try statement is successful, then return 'true' to indicate that the string is valid JSON.
@@ -188,50 +196,9 @@ def prompt(message, optional=True, input_type=str, default=""):
 
 
 
-# This function is used to parse GPX files into a Python dictionary.
-def process_gpx(gpx_file, modernize=False): # `gpx_file` is the absolute path to a GPX file. `modernize` determines if the timestamps will be offset such that the first timestamp is equal to the current time.
-    gpx_file = open(gpx_file, 'r') # Open the GPX file.
-    xmldoc = minidom.parse(gpx_file) # Read the full XML GPX document.
-
-    track = xmldoc.getElementsByTagName('trkpt') # Get all of the location information from the GPX document.
-    speed = xmldoc.getElementsByTagName('speed') # Get all of the speed information from the GPX document.
-    altitude = xmldoc.getElementsByTagName('ele') # Get all of the elevation information from the GPX document.
-    timing = xmldoc.getElementsByTagName('time') # Get all of the timing information from the GPX document.
-
-    offset = 0 # This is the value that all timestamps in the file will be offset by.
-    if (modernize == True): # Check to see if this GPX file should be modernized, such that the first entry in the file is the current time, and all subsequent points are offset by the same amount.
-        first_point_time = str(timing[0].toxml().replace("<time>", "").replace("</time>", "").replace("Z", "").replace("T", " ")) # Get the time for the first point in human readable text format.
-
-        first_point_time = round(time.mktime(datetime.datetime.strptime(first_point_time, "%Y-%m-%d %H:%M:%S").timetuple())) # Convert the human readable timestamp into a Unix timestamp.
-        offset = get_time()-first_point_time # Calculate the offset to make the first point in this GPX file the current time.
-
-    gpx_data = {} # This is a dictionary that will hold each location point, where the key is a timestamp.
-
-    for i in range(0, len(track)): # Iterate through each point in the GPX file.
-        point_lat = track[i].getAttribute('lat') # Get the latitude for this point.
-        point_lon = track[i].getAttribute('lon') # Get the longitude for this point.
-        try:
-            point_speed = speed[i].toxml().replace("<speed>","").replace("</speed>","")
-        except:
-            point_speed = 0
-        try:
-            point_altitude = altitude[i].toxml().replace("<ele>","").replace("</ele>","")
-        except:
-            point_altitude = 0
-        point_time = str(timing[i].toxml().replace("<time>", "").replace("</time>", "").replace("Z", "").replace("T", " ")) # Get the time for this point in human readable text format.
-
-        point_time = round(time.mktime(datetime.datetime.strptime(point_time, "%Y-%m-%d %H:%M:%S").timetuple())) # Convert the human readable timestamp into a Unix timestamp.
-
-        gpx_data[point_time + offset] = {"lat": float(point_lat), "lon": float(point_lon), "spd": float(point_speed), "alt": float(point_altitude)} # Add this point to the decoded GPX data.
-
-    return gpx_data
-
-
-
-
 # This function returns the nearest timestamp key in dictionary to a given timestamp.
 def closest_key(array, search_key):
-    current_best = [0, get_time()]
+    current_best = [0, time.time()]
     for key in array: # Iterate through each timestamp in the given dictionary.
         difference = abs(float(search_key) - float(key)) # Calculate the difference in time between the given timestamp, and this timestamp.
         if (difference < current_best[1]): # Check to see if this entry is closer than the current best.
@@ -261,3 +228,94 @@ def convert_corners_to_bounding_box(corners):
         return bounding_box
     else: # The number of corners is not the expected length.
         return False
+
+
+
+# This function will read each frame of the supplied video until a time-stamp is detected. It returns the Unix timestamp of the first frame of the video.
+def get_osd_time(video, verbose=False):
+    bounding_box = config["behavior"]["metadata"]["time"]["overlay"]["bounding_box"]
+    cap = cv2.VideoCapture(video) # Load this video as an OpenCV capture.
+    video_frame_rate = int(cap.get(cv2.CAP_PROP_FPS)) # Get the video frame-rate.
+    current_frame = 0
+    timestamp = 0 # This is a placeholder that will be overwritten with the detected on-screen time as a Unix timestamp.
+    while (cap.isOpened()):
+        ret, frame = cap.read() # Get the next frame.
+        if (ret == True):
+            cropped = frame[bounding_box["y"]:bounding_box["y"]+bounding_box["h"],bounding_box["x"]:bounding_box["x"]+bounding_box["w"]] # Crop the frame down to the configured bounding box.
+            gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY) # Convert the image to grayscale.
+            _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY +cv2.THRESH_OTSU)
+            text = pytesseract.image_to_string(Image.fromarray(thresholded), config='--psm 11') # Read the text from the image.
+            text = text.strip() # Remove any leading or trailing whitespace.
+            if len(text) > 0: # Check to see if text was recognized.
+                if (verbose == True):
+                    print(text)
+                try:
+                    date_object = datetime.datetime.strptime(text, config["behavior"]["metadata"]["time"]["overlay"]["format"])
+                    timestamp = int(time.mktime(date_object.timetuple()))
+                    adjusted_timestamp = timestamp - (current_frame * (1/video_frame_rate))
+                    if (adjusted_timestamp > 0):
+                        return adjusted_timestamp
+                except Exception as e:
+                    print(e)
+                    continue
+
+        else:
+            break
+        current_frame += 1
+    display_message("Failed to determined video timestamp.", 2)
+    return 0
+
+
+# This function takes a video file-path, and uses character recognition to get the GPS information from the stamp within the provided bounding box. This function returns a frame-by-frame list of each GPS location.
+def get_osd_gps(video, interval=1):
+    bounding_box = config["behavior"]["metadata"]["gps"]["overlay"]["bounding_box"]
+    cap = cv2.VideoCapture(video) # Load this video as an OpenCV capture.
+    video_frame_rate = int(cap.get(cv2.CAP_PROP_FPS)) # Get the video frame-rate.
+    video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # Count the number of frames in the video.
+    frame_interval = interval*video_frame_rate # Convert the interval from seconds to number of frames.
+    current_frame = -1
+
+    frame_locations = []
+
+    while (cap.isOpened()):
+        current_frame += 1
+        ret, frame = cap.read() # Get the next frame.
+        if (ret == True):
+            if (current_frame % frame_interval == 0): # Check to see if we are on the frame interval before running analysis.
+                cropped = frame[bounding_box["y"]:bounding_box["y"]+bounding_box["h"],bounding_box["x"]:bounding_box["x"]+bounding_box["w"]] # Crop the frame down to the configured bounding box.
+                gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY) # Convert the image to grayscale.
+                _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY +cv2.THRESH_OTSU)
+                text = pytesseract.image_to_string(Image.fromarray(thresholded), config='--psm 11') # Read the text from the image.
+                text = text.strip() # Remove any leading or trailing whitespace.
+
+                # Replace commonly confused characters.
+                text = text.replace("$", "S") 
+                text = text.replace("F", "E") 
+                text = text.replace(" . ", ".") 
+                text = text.replace(". ", ".") 
+                text = text.replace(" .", ".") 
+                if len(text) > 0: # Check to see if text was recognized.
+                    split_input = text.split()
+                    if (len(split_input) == 2): # Check to make sure there are exactly two values (lat/lon)
+                        split_input[0] = ''.join(c for c in split_input[0] if c.isdigit() or c =='.') # Remove all non-numeric characters.
+                        split_input[1] = ''.join(c for c in split_input[1] if c.isdigit() or c =='.') # Remove all non-numeric characters.
+                        location = {"lat": split_input[0], "lon": split_input[1]}
+                    else:
+                        location = {"lat": 0, "lon": 0}
+                else:
+                    location = {"lat": 0, "lon": 0}
+        else: # Otherwise, the capture has dropped.
+            break
+        frame_locations.append(location)
+
+    if (len(frame_locations) > video_frame_count): # Check to see if there are more frame locations than frames. This should never happen.
+        display_message("There were more frame locations than frames in the video during GPS OSD analysis.", 3)
+        frame_locations = [] # Clear the frame locations so they can be regenerated with place-holders.
+    elif (len(frame_locations) > video_frame_count): # Check to see if there are fewer frame locations than frames. This should never happen.
+        display_message("There were fewer frame locations than frames in the video during GPS OSD analysis.", 3)
+        frame_locations = [] # Clear the frame locations so they can be regenerated with place-holders.
+
+    while (len(frame_locations) < video_frame_count): # Run in a loop if there are fewer frame locations than frames, and fill them with place-holders.
+        frame_locations.append({"lat": 0, "lon": 0})
+
+    return frame_locations

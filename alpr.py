@@ -19,6 +19,7 @@ import utils # The 'utils.py' script, containing various support functions.
 import subprocess # Required to run the ALPR executable as a shell script.
 import json
 import time
+import cv2
 
 
 # This function validates a license plate given a template.
@@ -36,7 +37,7 @@ def validate_plate(plate):
                     plate_valid = False
                     break # Exit the loop, since the remaining characters do not need to be analyzed.
         else: # The plate length does not match the template length.
-            break # Exit the loop now so we can try the next template.
+            continue # Skip the loop now so we can try the next template.
 
         if (plate_valid == True): # Check to see if the plate validation status remains as true after all characters have been checked.
             return True # Return that the plate is valid.
@@ -50,14 +51,14 @@ def validate_plate(plate):
 def run_alpr(image_filepath):
     global config
     if (config["alpr"]["engine"] == "phantom"): # Check to see if the configuration indicates that the Phantom ALPR engine should be used.
-        analysis_command = "alpr -n " + str(config["alpr"]["validation"]["guesses"]) + " '" + image_filepath + "'"
+        analysis_command = "alpr -c " + config["alpr"]["region"] + " -n " + str(config["alpr"]["validation"]["guesses"]) + " '" + image_filepath + "'"
         reading_output = str(os.popen(analysis_command).read()) # Run the command, and record the raw output string.
         reading_output = json.loads(reading_output) # Convert the JSON string from the command output to actual JSON data that Python can manipulate.
         if ("error" in reading_output): # Check to see if there were errors.
             print("Phantom ALPR encountered an error: " + reading_output["error"]) # Display the ALPR error.
             reading_output["results"] = [] # Set the results of the reading output to a blank placeholder list.
     elif (config["alpr"]["engine"] == "openalpr"): # Check to see if the configuration indicates that the OpenALPR engine should be used.
-        analysis_command = "alpr -n -j " + str(config["alpr"]["validation"]["guesses"]) + " '" + image_filepath + "'"
+        analysis_command = "alpr -j -c " + config["alpr"]["region"] + " -n " + str(config["alpr"]["validation"]["guesses"]) + " '" + image_filepath + "'"
         reading_output = str(os.popen(analysis_command).read()) # Run the command, and record the raw output string.
         reading_output = json.loads(reading_output) # Convert the JSON string from the command output to actual JSON data that Python can manipulate.
 
@@ -83,25 +84,36 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             utils.debug_message("File analysis on '" + file + "' is already complete")
         else: # Otherwise, this file needs to be analyzed.
             if (config["alpr"]["engine"] == "phantom"): # Check to see if the configure ALPR engine is Phantom.
-                alpr_command = ["alpr", "-n", str(config["alpr"]["validation"]["guesses"]),  scan_directory + "/" + file] # Set up the OpenALPR command.
+                alpr_command = ["alpr", "-c", config["alpr"]["region"], "-n", str(config["alpr"]["validation"]["guesses"]),  scan_directory + "/" + file] # Set up the OpenALPR command.
             if (config["alpr"]["engine"] == "openalpr"): # Check to see if the configure ALPR engine is OpenALPR.
-                alpr_command = ["alpr", "-j", "-n", str(config["alpr"]["validation"]["guesses"]),  scan_directory + "/" + file] # Set up the OpenALPR command.
+                alpr_command = ["alpr", "-j", "-c", config["alpr"]["region"], "-n", str(config["alpr"]["validation"]["guesses"]),  scan_directory + "/" + file] # Set up the OpenALPR command.
 
             utils.debug_message("Counting frames on '" + file + "'")
-            video_frame_count_command = "ffprobe -select_streams v -show_streams " + scan_directory + "/" + file + " 2>/dev/null | grep nb_frames | sed -e 's/nb_frames=//'" # Define the commmand to count the frames in the video.
-            video_frame_count_process = subprocess.Popen(video_frame_count_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True) # Execute the command to count the frames in the video.
-            video_frame_count, command_error = video_frame_count_process.communicate() # Fetch the results of the frame count command.
-            video_frame_count = int(video_frame_count) # Convert the frame count to an integer.
+            cap = cv2.VideoCapture(scan_directory + "/" + file) # Load this video as an OpenCV capture.
+            video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # Count the number of frames in the video.
+            video_frame_rate = int(cap.get(cv2.CAP_PROP_FPS)) # Get the video frame-rate.
+            cap = None # Release the video capture.
+
+            utils.debug_message("Establishing metadata on '" + file + "'")
+            starting_timestamp = utils.get_osd_time(scan_directory + "/" + file)
+            video_gps_track = utils.get_osd_gps(scan_directory + "/" + file) # Get the GPS track from the on-screen display video overlay.
 
             utils.debug_message("Running ALPR on '" + file + "'")
             alpr_process = subprocess.Popen(alpr_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Execute the ALPR command defined previously.
             command_output, command_error = alpr_process.communicate() # Fetch the output from the ALPR command.
             command_output = command_output.splitlines() # Split the ALPR output be lines. Each line corresponds to a frame of the video.
             utils.debug_message("Processing results on '" + file + "'")
-            print(command_error)
+            if (len(command_error) > 0): # Check to see if an error occurred while executing the ALPR back-end.
+                display_message("An error occurred while running ALPR:", 3)
+                print(command_error)
             if (len(command_output) == video_frame_count): # Check to make sure the number of frames analyzed is the same as the frame count.
                 analysis_results = {} # This will hold the analysis results for this video file.
                 for frame_number, frame_data in enumerate(command_output): # Iterate through each frame's analysis results from the commmand output.
+                    frame_timestamp = starting_timestamp + (frame_number * (1/video_frame_rate)) # Calculate the timestamp of this frame.
+                    if (frame_number < len(video_gps_track)): # Check to see if this frame is in the video GPS track.
+                        frame_location = video_gps_track[frame_number] # Set this frame's location to the location from the GPS track.
+                    else:
+                        frame_location = {"x": 0, "y": 0} # Use a blank placeholder GPS location.
                     frame_data = json.loads(frame_data) # Load the raw results for this frame.
                     frame_results = {} # This will hold the organized analysis results for this frame.
                     for result in frame_data["results"]: # Iterate through each plate detected in this frame.
@@ -118,7 +130,11 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                             frame_results[top_guess] = {} # Initialize this plate in the dictionary of plates for this frame.
                             frame_results[top_guess]["coordinates"] = utils.convert_corners_to_bounding_box(result["coordinates"]) # Add the position of this plate in the image.
                     if (len(frame_results) > 0): # Check to see if there is at least one result for this frame.
-                        analysis_results[frame_number] = frame_results # Add this frame's data to the full analysis results for this video file.
+                        analysis_results[frame_number] = {}
+                        analysis_results[frame_number]["results"] = frame_results # Add this frame's data to the full analysis results for this video file.
+                        analysis_results[frame_number]["meta"] = {}
+                        analysis_results[frame_number]["meta"]["time"] = round(frame_timestamp*100)/100
+                        analysis_results[frame_number]["meta"]["location"] = frame_location
                 utils.debug_message("Saving sidecar file for '" + file + "'")
                 utils.save_to_file(sidecar_filepath, json.dumps(analysis_results, indent=4)) # Save the analysis results for this file to the side-car file.
                 utils.debug_message("Analysis finished on '" + file + "'")

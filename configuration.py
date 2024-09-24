@@ -211,12 +211,14 @@ def del_nested_value(index, data):
     elif (len(index) == 10):
         del data[index[0]][index[1]][index[2]][index[3]][index[4]][index[5]][index[6]][index[7]][index[8]][index[9]]
     else:
-        display_message("The del_nested_value() function was called with an index of unexpected length", 3)
+        display_message("The del_nested_value() function was called with an index of unexpected length (" + str(len(index)) + ")", 3)
 
     return data
 
 def set_nested_value(index, data, value):
-    if (len(index) == 1):
+    if (len(index) == 0):
+        data = value
+    elif (len(index) == 1):
         data[index[0]] = value
     elif (len(index) == 2):
         data[index[0]][index[1]] = value
@@ -237,7 +239,7 @@ def set_nested_value(index, data, value):
     elif (len(index) == 10):
         data[index[0]][index[1]][index[2]][index[3]][index[4]][index[5]][index[6]][index[7]][index[8]][index[9]] = value
     else:
-        display_message("The set_nested_value() function was called with an index of unexpected length", 3)
+        display_message("The set_nested_value() function was called with an index of unexpected length (" + str(len(index)) + ")", 3)
 
     return data
 
@@ -302,7 +304,7 @@ def highest_different_index(config_active, config_default, index): # This functi
             elif (len(index) == 10):
                 test = config_active[index[0]][index[1]][index[2]][index[3]][index[4]][index[5]][index[6]][index[7]][index[8]][index[9]]
             else:
-                display_message("The highest_different_index() function was called with an index of unexpected length", 3)
+                display_message("The highest_different_index() function was called with an index of unexpected length (" + str(len(index)) + ")", 3)
 
             if (last_index != ""):
                 index.append(last_index)
