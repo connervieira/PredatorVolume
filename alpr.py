@@ -95,7 +95,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             cap = None # Release the video capture.
 
             utils.debug_message("Establishing metadata on '" + file + "'")
-            starting_timestamp = utils.get_osd_time(scan_directory + "/" + file)
+            starting_timestamp = utils.get_osd_time(scan_directory + "/" + file) # Get the timestamp of the first frame of the video overlay.
             video_gps_track = utils.get_osd_gps(scan_directory + "/" + file) # Get the GPS track from the on-screen display video overlay.
 
             utils.debug_message("Running ALPR on '" + file + "'")
