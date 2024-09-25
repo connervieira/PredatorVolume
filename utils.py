@@ -79,6 +79,7 @@ def clear(force=False):
             elif name == 'nt': # For Windows
                 os.system("cls")
 
+# This function takes the user's input selection given a list of valid menu options.
 def take_selection(options):
     selection = -1
     while selection not in options:
@@ -88,7 +89,7 @@ def take_selection(options):
         except:
             selection = -1
         if (selection not in options):
-            print("Please select a valid option from the list by entering the number associated with it")
+            display_message("Please select a valid option from the list by entering the number associated with it.", 2)
     return selection
 
 
