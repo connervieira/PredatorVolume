@@ -80,12 +80,16 @@ def clear(force=False):
                 os.system("cls")
 
 def take_selection(options):
-    selection = ""
+    selection = -1
     while selection not in options:
         selection = input("Selection: ")
+        try:
+            selection = int(selection) 
+        except:
+            selection = -1
         if (selection not in options):
             print("Please select a valid option from the list by entering the number associated with it")
-    selection = int(selection) 
+    return selection
 
 
 # This function determines if a given string is valid JSON.

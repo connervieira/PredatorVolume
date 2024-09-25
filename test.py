@@ -11,7 +11,7 @@ config = configuration.load_config()
 print("Testing mode")
 print("1. ALPR Analysis")
 print("2. OSD Analysis")
-selection = int(input("Selection: "))
+selection = utils.take_selection([1, 2])
 
 if (selection == 1): # ALPR testing.
     pass # TODO
@@ -20,12 +20,12 @@ elif (selection == 2): # OSD testing.
     print("Mode")
     print("1. Test")
     print("2. Preview")
-    mode = int(input("Selection: "))
+    mode = utils.take_selection([1, 2])
 
     print("OSD attribute")
     print("1. Date/Time")
     print("2. GPS")
-    attribute = int(input("Selection: "))
+    attribute = utils.take_selection([1, 2])
 
     file = input("File: ")
     if (mode == 1): # Test OSD stamp recognition

@@ -16,25 +16,33 @@ import alpr
 
 config = configuration.load_config()
 
-working_directory = "" # This is a placeholder that will be overwritten with the user's input.
-while (working_directory == "" or os.path.isdir(working_directory) == False): # Repeatedly prompt the user to enter a valid working directory until a valid response is given.
-    working_directory = utils.prompt("Working directory: ", optional=False)
-    if (os.path.isfile(working_directory) == True): # Check to see if the specified path is a file.
-        utils.display_message("The specified path points to a file, not a directory.", 2)
-    elif (os.path.exists(working_directory) == False): # Check to see if the specified path does not exist.
-        utils.display_message("The specified path does not exist.", 2)
+print("Please select a mode:")
+print("1. Analyze")
+print("2. Query")
+selection = utils.take_selection([1, 2])
 
-working_directory_contents = os.listdir(working_directory) # Get the contents of the working directory.
+if (selection == 1): # Analysis mode.
+    working_directory = "" # This is a placeholder that will be overwritten with the user's input.
+    while (working_directory == "" or os.path.isdir(working_directory) == False): # Repeatedly prompt the user to enter a valid working directory until a valid response is given.
+        working_directory = utils.prompt("Working directory: ", optional=False)
+        if (os.path.isfile(working_directory) == True): # Check to see if the specified path is a file.
+            utils.display_message("The specified path points to a file, not a directory.", 2)
+        elif (os.path.exists(working_directory) == False): # Check to see if the specified path does not exist.
+            utils.display_message("The specified path does not exist.", 2)
 
-videos_to_analyze = [] # This is a placeholder that will hold all video files to analyze.
-for file in working_directory_contents: # Iterate over each file in the working directory.
-    filename_split = os.path.splitext(file) # Split the name of this file into the base-name and extension.
-    if (filename_split[1].lower() in [".mp4", ".m4v", ".webm", ".mjpg", ".mjpeg", ".mkv", ".flv", ".ts"]): # Check to see if this file is a supported video file.
-        videos_to_analyze.append(file) # Add this video to the files to analze.
+    working_directory_contents = os.listdir(working_directory) # Get the contents of the working directory.
 
-if (len(videos_to_analyze) > 0):
-    if (len(videos_to_analyze) == 1): utils.display_message("Found " + str(len(videos_to_analyze)) + " video file to analyze.", 1)
-    else: utils.display_message("Found " + str(len(videos_to_analyze)) + " video files to analyze.", 1)
-    alpr.generate_dashcam_sidecar_files(working_directory, videos_to_analyze)
-else:
-    utils.display_message("There were no video files to analyze in the specified directory.", 2)
+    videos_to_analyze = [] # This is a placeholder that will hold all video files to analyze.
+    for file in working_directory_contents: # Iterate over each file in the working directory.
+        filename_split = os.path.splitext(file) # Split the name of this file into the base-name and extension.
+        if (filename_split[1].lower() in [".mp4", ".m4v", ".webm", ".mjpg", ".mjpeg", ".mkv", ".flv", ".ts"]): # Check to see if this file is a supported video file.
+            videos_to_analyze.append(file) # Add this video to the files to analze.
+
+    if (len(videos_to_analyze) > 0):
+        if (len(videos_to_analyze) == 1): utils.display_message("Found " + str(len(videos_to_analyze)) + " video file to analyze.", 1)
+        else: utils.display_message("Found " + str(len(videos_to_analyze)) + " video files to analyze.", 1)
+        alpr.generate_dashcam_sidecar_files(working_directory, videos_to_analyze)
+    else:
+        utils.display_message("There were no video files to analyze in the specified directory.", 2)
+elif (selection == 2): # Query mode.
+    pass # TODO
