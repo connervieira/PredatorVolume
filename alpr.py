@@ -106,7 +106,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             if (len(command_error) > 0): # Check to see if an error occurred while executing the ALPR back-end.
                 display_message("An error occurred while running ALPR:", 3)
                 print(command_error)
-            if (len(command_output) == video_frame_count): # Check to make sure the number of frames analyzed is the same as the frame count.
+            if (abs(len(command_output) - video_frame_count) <= 0): # Check to make sure the number of frames analyzed is the same as the frame count.
                 analysis_results = {} # This will hold the analysis results for this video file.
                 for frame_number, frame_data in enumerate(command_output): # Iterate through each frame's analysis results from the commmand output.
                     frame_timestamp = starting_timestamp + (frame_number * (1/video_frame_rate)) # Calculate the timestamp of this frame.
@@ -141,5 +141,6 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             else:
                 failed_files.append(file)
                 utils.debug_message("Analysis incomplete for '" + file + "'")
-                utils.display_message("The number of frames in the video does not match the number of frames analyzed. The analysis has been skipped for this file.", 2)
+            if (len(command_output) == video_frame_count): # Check to make sure the number of frames analyzed is the same as the frame count.
+                utils.display_message("The number of frames in the video (" + str(video_frame_count) + ") does not match the number of frames analyzed (" + str(len(command_output)) + "). The analysis has been skipped for this file.", 2)
     return failed_files
