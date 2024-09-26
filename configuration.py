@@ -73,6 +73,11 @@ def check_value(value, template):
         elif (template == "bool"): # 'bool' means this value needs to be true or false.
             if (type(value) != bool):
                 return False
+        elif (template == "percentage"): # 'percentage' means this value needs to be between 0 and 1.
+            if (type(value) != float and type(value) != int):
+                return False
+            if (value < 0 or value > 1):
+                return False
         elif (template == "float"): # 'float' means this value needs to be a number.
             if (type(value) != float and type(value) != int):
                 return False
@@ -102,10 +107,10 @@ def check_value(value, template):
             if (os.path.isfile(value) == False):
                 return False
         else:
-            print("An entry in the configuration outline template is an unexpected value.")
+            utils.display_message("An entry in the configuration outline template is an unexpected value.", 2)
             return True
     else:
-        print("An entry in the configuration outline template is an unexpected type.")
+        utils.display_message("An entry in the configuration outline template is an unexpected type.", 2)
         return True
 
     return True

@@ -106,7 +106,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             if (len(command_error) > 0): # Check to see if an error occurred while executing the ALPR back-end.
                 display_message("An error occurred while running ALPR:", 3)
                 print(command_error)
-            if (abs(len(command_output) - video_frame_count) <= 0): # Check to make sure the number of frames analyzed is the same as the frame count.
+            if (abs(len(command_output) - video_frame_count) <= 10): # Check to make sure the number of frames analyzed is (almost) the same as the frame count.
                 analysis_results = {} # This will hold the analysis results for this video file.
                 for frame_number, frame_data in enumerate(command_output): # Iterate through each frame's analysis results from the commmand output.
                     frame_timestamp = starting_timestamp + (frame_number * (1/video_frame_rate)) # Calculate the timestamp of this frame.
@@ -136,11 +136,10 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                         analysis_results[frame_number]["meta"]["time"] = round(frame_timestamp*100)/100
                         analysis_results[frame_number]["meta"]["location"] = frame_location
                 utils.debug_message("Saving sidecar file for '" + file + "'")
-                utils.save_to_file(sidecar_filepath, json.dumps(analysis_results, indent=4)) # Save the analysis results for this file to the side-car file.
+                utils.save_to_file(sidecar_filepath, json.dumps(analysis_results)) # Save the analysis results for this file to the side-car file.
                 utils.debug_message("Analysis finished on '" + file + "'")
             else:
                 failed_files.append(file)
                 utils.debug_message("Analysis incomplete for '" + file + "'")
-            if (len(command_output) == video_frame_count): # Check to make sure the number of frames analyzed is the same as the frame count.
                 utils.display_message("The number of frames in the video (" + str(video_frame_count) + ") does not match the number of frames analyzed (" + str(len(command_output)) + "). The analysis has been skipped for this file.", 2)
     return failed_files

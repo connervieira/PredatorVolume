@@ -73,10 +73,10 @@ from xml.dom import minidom # Required for processing GPX data
 # This function clears the console output.
 def clear(force=False):
     if ("--headless" not in sys.argv): # Only clear the screen if headless mode is disabled.
-        if (config["general"]["display"]["debugging_output"] == False or force == True): # Only clear the console if the debugging output configuration value is disabled.
-            if name == 'posix': # For Unix-like systems (MacOS, Linux, etc.)
+        if (config["display"]["debug_messages"] == False): # Don't clear the screen if debug output is enabled.
+            if os.name == 'posix': # For Unix-like systems (MacOS, Linux, etc.)
                 os.system("clear")
-            elif name == 'nt': # For Windows
+            elif os.name == 'nt': # For Windows
                 os.system("cls")
 
 # This function takes the user's input selection given a list of valid menu options.
@@ -91,6 +91,18 @@ def take_selection(options):
         if (selection not in options):
             display_message("Please select a valid option from the list by entering the number associated with it.", 2)
     return selection
+
+
+# This function prompts the user to enter the path to an existing directory.
+def input_directory(text_prompt="Directory: "):
+    directory = "" # This is a placeholder that will be overwritten with the user's input.
+    while (directory == "" or os.path.isdir(directory) == False): # Repeatedly prompt the user to enter a valid working directory until a valid response is given.
+        directory = prompt(text_prompt, optional=False)
+        if (os.path.isfile(directory) == True): # Check to see if the specified path is a file.
+            display_message("The specified path points to a file, not a directory.", 2)
+        elif (os.path.exists(directory) == False): # Check to see if the specified path does not exist.
+            display_message("The specified path does not exist.", 2)
+    return directory
 
 
 # This function determines if a given string is valid JSON.
@@ -147,6 +159,7 @@ def is_number(value):
 
 # This function prompts the user for an input, and handles basic input validation.
 def prompt(message, optional=True, input_type=str, default=""):
+    debug_message("Waiting for user input")
     if ("--headless" in sys.argv): # Check to see if the headless flag exists in the command line arguments.
         user_input = "" # Skip the user input and use a blank value.
     else:
@@ -269,7 +282,6 @@ def get_osd_time(video, verbose=False):
                     if (adjusted_timestamp > 0):
                         return adjusted_timestamp
                 except Exception as e:
-                    print(e)
                     continue
 
         else:

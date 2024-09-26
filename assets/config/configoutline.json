@@ -1,0 +1,42 @@
+{
+    "alpr": {
+        "engine": ["openalpr", "phantom"],
+        "region": ["us", "eu"],
+        "validation": {
+            "confidence": "percentage",
+            "guesses": "+int",
+            "best_effort": "bool",
+            "templates": "list"
+        }
+    },
+    "display": {
+        "debug_messages": "bool"
+    },
+    "behavior": {
+        "metadata": {
+            "time": {
+                "method": "str",
+                "overlay": {
+                    "format": "str",
+                    "bounding_box": {
+                        "x": "+int",
+                        "y": "+int",
+                        "w": "+int",
+                        "h": "+int"
+                    }
+                }
+            },
+            "gps": {
+                "method": "str",
+                "overlay": {
+                    "bounding_box": {
+                        "x": "+int",
+                        "y": "+int",
+                        "w": "+int",
+                        "h": "+int"
+                    }
+                }
+            }
+        }
+    }
+}
