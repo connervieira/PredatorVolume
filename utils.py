@@ -333,12 +333,13 @@ def get_osd_gps(video, interval=1):
             break
         frame_locations.append(location)
 
-    if (len(frame_locations) > video_frame_count): # Check to see if there are more frame locations than frames. This should never happen.
-        display_message("There were more frame locations than frames in the video during GPS OSD analysis.", 3)
-        frame_locations = [] # Clear the frame locations so they can be regenerated with place-holders.
-    elif (len(frame_locations) > video_frame_count): # Check to see if there are fewer frame locations than frames. This should never happen.
-        display_message("There were fewer frame locations than frames in the video during GPS OSD analysis.", 3)
-        frame_locations = [] # Clear the frame locations so they can be regenerated with place-holders.
+    if (len(frame_locations) > video_frame_count): # Check to see if there are more frame locations than frames.
+        if (len(frame_locations) > video_frame_count + video_frame_rate): # Only display an error if the frame location count is off by more than 1 second of video (based on the frame-rate).
+            display_message("There were more frame locations (" + str(len(frame_locations)) + ") than frames in the video (" + str(video_frame_count) + ") during GPS OSD analysis.", 2)
+        frame_locations = frame_locations[:video_frame_count] # Trim the frame locations down to the length of the video.
+    elif (len(frame_locations) < video_frame_count): # Check to see if there are fewer frame locations than frames. This should never happen.
+        if (len(frame_locations) < video_frame_count - video_frame_rate): # Only display an error if the frame location count is off by more than 1 second of video (based on the frame-rate).
+            display_message("There were fewer frame locations (" + str(len(frame_locations)) + ") than frames in the video (" + str(video_frame_count) + ") during GPS OSD analysis.", 2)
 
     while (len(frame_locations) < video_frame_count): # Run in a loop if there are fewer frame locations than frames, and fill them with place-holders.
         frame_locations.append({"lat": 0, "lon": 0})
