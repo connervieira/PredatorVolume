@@ -7,7 +7,6 @@
             "guesses": 15,
             "best_effort": false,
             "templates": [
-                "AAA0000",
                 "AA00AAAA"
             ]
         }
