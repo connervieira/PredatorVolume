@@ -1,7 +1,7 @@
 {
     "alpr": {
         "engine": ["openalpr", "phantom"],
-        "region": ["us", "eu"],
+        "region": ["us", "eu", "au", "br", "fr", "gb", "in", "kr", "mx", "sg"],
         "validation": {
             "confidence": "percentage",
             "guesses": "+int",
@@ -13,6 +13,14 @@
         "debug_messages": "bool"
     },
     "behavior": {
+        "optimization": {
+            "ignore": {
+                "time": {
+                    "after": "+float",
+                    "before": "+float"
+                }
+            }
+        },
         "metadata": {
             "time": {
                 "method": "str",

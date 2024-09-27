@@ -13,6 +13,14 @@
         "debug_messages": false
     },
     "behavior": {
+        "optimization": {
+            "ignore": {
+                "time": {
+                    "after": 20,
+                    "before": 6
+                }
+            }
+        },
         "metadata": {
             "time": {
                 "method": "overlay",

@@ -20,6 +20,7 @@ import subprocess # Required to run the ALPR executable as a shell script.
 import json
 import time
 import cv2
+from datetime import datetime
 
 
 # This function validates a license plate given a template.
@@ -96,6 +97,11 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
 
             utils.debug_message("Establishing metadata on '" + file + "'")
             starting_timestamp = utils.get_osd_time(scan_directory + "/" + file) # Get the timestamp of the first frame of the video overlay.
+            starting_hour = float(datetime.fromtimestamp(starting_timestamp).strftime('%H')) # Get the starting hour (24hr) of this video.
+            if (starting_hour >= float(config["behavior"]["optimization"]["ignore"]["time"]["after"]) or starting_hour <= float(config["behavior"]["optimization"]["ignore"]["time"]["before"])):
+                utils.debug_message("Skipping '" + file + "' based on time ignore optimizations")
+                utils.display_message("Skipping based on video timestamp.", 1)
+                continue
             video_gps_track = utils.get_osd_gps(scan_directory + "/" + file) # Get the GPS track from the on-screen display video overlay.
 
             utils.debug_message("Running ALPR on '" + file + "'")
@@ -138,6 +144,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                 utils.debug_message("Saving sidecar file for '" + file + "'")
                 utils.save_to_file(sidecar_filepath, json.dumps(analysis_results)) # Save the analysis results for this file to the side-car file.
                 utils.debug_message("Analysis finished on '" + file + "'")
+                utils.display_message("Analysis complete", 1)
             else:
                 failed_files.append(file)
                 utils.debug_message("Analysis incomplete for '" + file + "'")

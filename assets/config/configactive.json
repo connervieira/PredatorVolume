@@ -16,6 +16,14 @@
         "debug_messages": false
     },
     "behavior": {
+        "optimization": {
+            "ignore": {
+                "time": {
+                    "after": 18,
+                    "before": 6
+                }
+            }
+        },
         "metadata": {
             "time": {
                 "method": "overlay",
