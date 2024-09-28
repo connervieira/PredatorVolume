@@ -40,6 +40,9 @@ Below is a list of all configuration values supported by Predator Volume.
         - `confidence` is a floating point value that determines the minimum confidence for a plate to be considered (ranging from 0 to 1, where 1 is absolute confidence)
         - `guesses` is an integer number that determines how many guesses the ALPR engine will take as to the contents of each plate.
         - `best_effort` determines whether Predator Volume will accept the most likely guess for a plate if all plate guesses fail the configured validation criteria. When disable, only plates with valid guesses will be processed.
+        - `consecutive` is an integer number that determines the minimum number of consecutive frames that a plate has to be visible before it is considered.
+            - Setting this to 0 will accept all detected plates immediately.
+            - Higher values will help to filter out unreliable plate readings, but may also cause plates that are only briefly visible to be rejected.
         - `templates` is a list of strings that define license plate templates.
             - The type of each character in a plate guess (number or letter) must match the type of character in the the license plate template.
             - For example, the license plate template "AAA0000" will accept any plate that has 3 letters followed by four numbers.

@@ -6,6 +6,7 @@
             "confidence": "percentage",
             "guesses": "+int",
             "best_effort": "bool",
+            "consecutive": "+int",
             "templates": "list"
         }
     },

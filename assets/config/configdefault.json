@@ -6,6 +6,7 @@
             "confidence": 0.7,
             "guesses": 15,
             "best_effort": false,
+            "consecutive": 1,
             "templates": ["AAA0000", "AAA000"]
         }
     },

@@ -3,11 +3,13 @@
         "engine": "phantom",
         "region": "eu",
         "validation": {
-            "confidence": 0.75,
-            "guesses": 15,
+            "confidence": 0.9,
+            "guesses": 2,
             "best_effort": false,
+            "consecutive": 3,
             "templates": [
-                "AA00AAAA"
+                "AA00AAAA",
+                "AAA000AA"
             ]
         }
     },

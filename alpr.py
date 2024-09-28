@@ -114,6 +114,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                 print(command_error)
             if (abs(len(command_output) - video_frame_count) <= 10): # Check to make sure the number of frames analyzed is (almost) the same as the frame count.
                 analysis_results = {} # This will hold the analysis results for this video file.
+                previous_plates = {} # This will hold plates that have been detected multiple times consecutively.
                 for frame_number, frame_data in enumerate(command_output): # Iterate through each frame's analysis results from the commmand output.
                     frame_timestamp = starting_timestamp + (frame_number * (1/video_frame_rate)) # Calculate the timestamp of this frame.
                     if (frame_number < len(video_gps_track)): # Check to see if this frame is in the video GPS track.
@@ -135,6 +136,24 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                         if (top_guess != ""): # Check to see if the top guess is now set for this plate.
                             frame_results[top_guess] = {} # Initialize this plate in the dictionary of plates for this frame.
                             frame_results[top_guess]["coordinates"] = utils.convert_corners_to_bounding_box(result["coordinates"]) # Add the position of this plate in the image.
+
+                    # Increment the consecutive plate counter.
+                    for plate in list(frame_results.keys()): # Iterate through each plate in the list of detected plates to increment.
+                        if plate in previous_plates:
+                            previous_plates[plate] += 1
+                        else:
+                            previous_plates[plate] = 1
+
+                    # Remove any missing plates from the consecutive list.
+                    for plate in list(previous_plates.keys()):
+                        if (plate not in list(frame_results.keys())):
+                            del previous_plates[plate]
+
+                    # Filter plates based on the consecutive counter.
+                    for plate in list(frame_results.keys()): # Iterate over each plate in the validated results.
+                        if (previous_plates[plate] < config["alpr"]["validation"]["consecutive"]): # Check to see if this plate has been visible for less than the minimum consecutive instances.
+                            del frame_results[plate] # Remove this plate from the results.
+
                     if (len(frame_results) > 0): # Check to see if there is at least one result for this frame.
                         analysis_results[frame_number] = {}
                         analysis_results[frame_number]["results"] = frame_results # Add this frame's data to the full analysis results for this video file.
