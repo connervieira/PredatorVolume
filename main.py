@@ -181,17 +181,38 @@ elif (selection == 2): # Query mode.
                 print("2. Unique Instances")
 
                 selection = utils.take_selection([0, 1, 2])
+
+                print("Output Format:")
+                print("1. Plain Text")
+                print("2. JSON")
+                print("3. CSV")
+
+                output_format = utils.take_selection([1, 2, 3])
                 utils.clear()
                 if (selection == 0):
                     continue
                 elif (selection == 1):
-                    print("This plate has been seen " + str(len(all_plates[plate_to_find])) + " times.")
-                    for instance in all_plates[plate_to_find]:
-                        print(datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + " at (" + str(all_plates[plate_to_find][instance]["location"]["lat"]) + ", " + str(all_plates[plate_to_find][instance]["location"]["lon"]) + ")")
+                    if (output_format == 1): # Plate Search - All - Plain Text
+                        print("This plate has been seen " + str(len(all_plates[plate_to_find])) + " times.")
+                        for instance in all_plates[plate_to_find]:
+                            print(datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + " at (" + str(all_plates[plate_to_find][instance]["location"]["lat"]) + ", " + str(all_plates[plate_to_find][instance]["location"]["lon"]) + ")")
+                    elif (output_format == 2): # Plate Search - All - JSON
+                        print(json.dumps(all_plates[plate_to_find]))
+                    elif (output_format == 3): # Plate Search - All - CSV
+                        print("PLATE,DATE,LAT,LON")
+                        for instance in all_plates[plate_to_find]:
+                            print(plate_to_find + "," + datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + "," + str(all_plates[plate_to_find][instance]["location"]["lat"]) + "," + str(all_plates[plate_to_find][instance]["location"]["lon"]))
                 elif (selection == 2):
-                    print("This plate has been seen on " + str(len(times_passed)) + " separate instances.")
-                    for instance in times_passed:
-                        print(datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + " at (" + str(times_passed[instance]["location"]["lat"]) + ", " + str(times_passed[instance]["location"]["lon"]) + ")")
+                    if (output_format == 1): # Plate Search - Unique - Plain Text
+                        print("This plate has been seen on " + str(len(times_passed)) + " separate instances.")
+                        for instance in times_passed:
+                            print(datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + " at (" + str(times_passed[instance]["location"]["lat"]) + ", " + str(times_passed[instance]["location"]["lon"]) + ")")
+                    elif (output_format == 2): # Plate Search - Unique - JSON
+                        print(json.dumps(times_passed))
+                    elif (output_format == 3): # Plate Search - Unique - CSV
+                        print("PLATE,DATE,LAT,LON")
+                        for instance in times_passed:
+                            print(plate_to_find + "," + datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + "," + str(times_passed[instance]["location"]["lat"]) + "," + str(times_passed[instance]["location"]["lon"]))
                 
 
         utils.prompt(utils.style.faint + "Press enter to continue" + utils.style.end)
