@@ -9,3 +9,5 @@ This document contains information regarding installing Predator Volume.
 2. Install system dependencies.
     - Predator Volume depends on the following system packages: `python3 python3-pip python3-opencv ffmpeg`
     - System dependencies can be installed using your operating system's package manager. On Debian/Ubuntu based system, the `apt install` command is used for this purpose.
+3. Install Python dependencies.
+    - Predator Volume depends on the following non-standard Python libraries: `Levenshtein opencv-python`
