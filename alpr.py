@@ -18,7 +18,6 @@ config = configuration.load_config()
 import utils # The 'utils.py' script, containing various support functions.
 import subprocess # Required to run the ALPR executable as a shell script.
 import json
-import time
 import cv2
 from datetime import datetime
 
