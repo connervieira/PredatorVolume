@@ -13,6 +13,7 @@ import os
 import json # Required to load side-car files in query mode.
 import Levenshtein # Required to calculate the difference between two plates.
 import datetime # Required to print Unix timestamps as human-readable dates.
+import time
 import configuration # `configuration.py`
 import utils # `utils.py`
 import alpr # `alpr.py`
@@ -72,18 +73,35 @@ elif (selection == 2): # Query mode.
             all_data[file] = json.load(f)
 
 
-    while selection != 0: # Run forever, until the user quits.
+    while True: # Run forever, until the user quits.
         utils.clear()
-        print("Please select a query:")
+        print(utils.style.bold + "===== Main Menu =====" + utils.style.end)
         print("0. Quit")
-        print("1. All Plates")
-        print("2. Search Plates")
-        selection = utils.take_selection([0, 1, 2])
+        print("1. Statistics")
+        print("2. All Plates")
+        print("3. Search Plates")
+        print("4. Recent Plates")
+        print("5. Repeated Plates")
+        selection = utils.take_selection([0, 1, 2, 3, 4, 5])
         utils.clear()
 
-        if (selection == 0):
-            continue
-        if (selection == 1): # "All Plates" from main menu.
+        if (selection == 0): # "Quit" from main menu.
+            break
+        if (selection == 1): # "Statistics" from main menu.
+            file_count = 0 # This will count the number of files analyzed.
+            frame_count = 0 # This will count the number of frames analyzed.
+            plate_count = 0 # This will count the number of plates detected.
+            for file in all_data: # Iterate over each file in the loaded data.
+                file_count += 1
+                for frame in all_data[file]: # Iterate over each frame in this file.
+                    frame_count += 1
+                    for plate in all_data[file][frame]["results"]: # Iterate over each plate associated with this frame.
+                        plate_count += 1
+
+            print("File Count: " + str(file_count))
+            print("Frame Count: " + str(frame_count))
+            print("Plates Detected: " + str(plate_count))
+        elif (selection == 2): # "All Plates" from main menu.
             all_plates = {}
             for file in all_data: # Iterate over each file in the loaded data.
                 for frame in all_data[file]: # Iterate over each frame in this file.
@@ -93,31 +111,21 @@ elif (selection == 2): # Query mode.
                         else:
                             all_plates[plate] = 1
 
-            print("All Plates:")
+            print(utils.style.bold + "All Plates" + utils.style.end)
             print("0. Back")
             print("1. Complete")
             print("2. Unique")
             selection = utils.take_selection([0, 1, 2])
             utils.clear()
             if (selection == 0): # Back from "All Plates"
-                continue
+                pass
             elif (selection == 1): # "Complete" from "All Plates"
-                print("All Plates - Complete:")
-                print("0. Back")
-                print("1. Plates Only")
-                print("2. Counted")
-                selection = utils.take_selection([0, 1, 2])
-                utils.clear()
-                if (selection == 0): # Back from "All Plates - Complete"
-                    continue
-                elif (selection == 1): # "Plates Only" from "All Plates - Complete"
-                    print(json.dumps(list(all_plates.keys())))
-                elif (selection == 2): # "Counted" from "All Plates - Complete"
-                    print(json.dumps(all_plates, indent=4))
+                pass # Don't de-duplicate the plates.
+
             elif (selection == 2): # "Unique" from "All Plates"
                 threshold = 0
                 while threshold <= 0: # Run until the user supplies a value greater than 0.
-                    threshold = utils.prompt("Distance Threshold: ", optional=True, input_type=int, default=1)
+                    threshold = utils.prompt("Difference Threshold: ", optional=True, input_type=int, default=1)
                     if (threshold <= 0):
                         utils.display_message("The distance threshold must be greater than 0", 2)
                 utils.clear()
@@ -137,19 +145,49 @@ elif (selection == 2): # Query mode.
                                 skip_plates.append(plate_b)
                                 del all_plates[plate_b] # Remove plate B.
 
-                print("All Plates - Unique:")
-                print("0. Back")
-                print("1. Plates Only")
-                print("2. Counted")
-                selection = utils.take_selection([0, 1, 2])
-                utils.clear()
-                if (selection == 0): # Back from "All Plates - Unique"
-                    continue
-                elif (selection == 1): # "Plates Only" from "All Plates - Unique"
+            if (selection == 1): # "Complete" from "All Plates"
+                print(utils.style.bold + "All Plates > Complete" + utils.style.end)
+            elif (selection == 2): # "Unique" from "All Plates"
+                print(utils.style.bold + "All Plates > Unique" + utils.style.end)
+            print("1. Plates Only")
+            print("2. Counted")
+            display_type = utils.take_selection([1, 2])
+            utils.clear()
+
+            if (display_type == 1): # "Plates Only" from "All Plates > [Unique/Complete]"
+                print(utils.style.bold + "All Plates > Complete > Plates Only" + utils.style.end)
+            elif (display_type == 2): # "Counted " from "All Plates > [Unique/Complete]"
+                print(utils.style.bold + "All Plates > Unique > Counted" + utils.style.end)
+            print("1. Plain Text")
+            print("2. JSON")
+            print("3. CSV")
+
+            output_format = utils.take_selection([1, 2, 3])
+            utils.clear()
+
+            if (display_type == 1): # "Plates Only" from "All Plates"
+                if (output_format == 1): # "All Plates > [Unique/Complete] > Plates Only" plain text output.
+                    for plate in list(all_plates.keys()):
+                        print(plate)
+                elif (output_format == 2): # "All Plates > [Unique/Complete] > Plates Only" JSON output.
                     print(json.dumps(list(all_plates.keys())))
-                elif (selection == 2): # "Counted" from "All Plates - Unique"
-                    print(json.dumps(all_plates, indent=4))
-        elif (selection == 2): # "Search Plates" from main menu.
+                elif (output_format == 3): # "All Plates > [Unique/Complete] > Plates Only" CSV output.
+                    output_text = ""
+                    for plate in list(all_plates.keys()):
+                        output_text += plate + ","
+                    output_text = output_text[:-1] # Remove the last character, since it will always be a comma.
+                    print(output_text)
+            elif (display_type == 2): # "Counted" from "All Plates"
+                if (output_format == 1): # "All Plates > [Unique/Complete] > Counted" plain text output.
+                    for plate in list(all_plates.keys()):
+                        print(plate + ": " + str(all_plates[plate]))
+                elif (output_format == 2): # "All Plates > [Unique/Complete] > Counted" JSON output.
+                    print(json.dumps(all_plates))
+                elif (output_format == 3): # "All Plates > [Unique/Complete] > Counted" CSV output.
+                    print("PLATE,OCCURANCES")
+                    for plate in list(all_plates.keys()):
+                        print(plate + "," + str(all_plates[plate]))
+        elif (selection == 3): # "Search Plates" from main menu.
             all_plates = {}
             for file in all_data: # Iterate over each file in the loaded data.
                 for frame in all_data[file]: # Iterate over each frame in this file.
@@ -175,23 +213,24 @@ elif (selection == 2): # Query mode.
                         times_passed[instance] = all_plates[plate_to_find][instance]
                     last_timestamp = instance # This will hold the timestamp of the last time this plate was seen so we can filter out repeated sequential detections.
 
-                print("Search Plates - " + plate_to_find  + ":")
-                print("0. Back")
+                print(utils.style.bold + "Search Plates >  " + plate_to_find + utils.style.end)
                 print("1. All Detections")
                 print("2. Unique Instances")
 
                 selection = utils.take_selection([0, 1, 2])
 
                 print("Output Format:")
+                if (selection == 1):
+                    print(utils.style.bold + "Search Plates >  " + plate_to_find + " > All" + utils.style.end)
+                elif (selection == 2):
+                    print(utils.style.bold + "Search Plates >  " + plate_to_find + " > Unique" + utils.style.end)
                 print("1. Plain Text")
                 print("2. JSON")
                 print("3. CSV")
 
                 output_format = utils.take_selection([1, 2, 3])
                 utils.clear()
-                if (selection == 0):
-                    continue
-                elif (selection == 1):
+                if (selection == 1):
                     if (output_format == 1): # Plate Search - All - Plain Text
                         print("This plate has been seen " + str(len(all_plates[plate_to_find])) + " times.")
                         for instance in all_plates[plate_to_find]:
@@ -213,6 +252,149 @@ elif (selection == 2): # Query mode.
                         print("PLATE,DATE,LAT,LON")
                         for instance in times_passed:
                             print(plate_to_find + "," + datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + "," + str(times_passed[instance]["location"]["lat"]) + "," + str(times_passed[instance]["location"]["lon"]))
+
+        elif (selection == 4): # "Recent Plates" from main menu.
+            past_days = utils.prompt("Past Days: ", optional=True, input_type=int, default=1)
+
+            recent_plates = {}
+            old_plates = {}
+            for file in all_data: # Iterate over each file in the loaded data.
+                for frame in all_data[file]: # Iterate over each frame in this file.
+                    for plate in all_data[file][frame]["results"]: # Iterate over each plate associated with this frame.
+                        if (all_data[file][frame]["meta"]["time"] >= time.time() - (86400 * past_days)): # Check to see if this plate occurs within the specified time-frame.
+                            if plate in recent_plates:
+                                recent_plates[plate] += 1
+                            else:
+                                recent_plates[plate] = 1
+                        else: # Otherwise, this plate is older than the specified time-frame.
+                            if plate in old_plates:
+                                old_plates[plate] += 1
+                            else:
+                                old_plates[plate] = 1
+
+            print("Recent Plates:")
+            print("1. New")
+            print("2. Recurring")
+
+            selection = utils.take_selection([1, 2])
+            utils.clear()
+            displayed_plates = []
+            for plate in recent_plates.keys():
+                if (selection == 1): # "Recent Plates - New"
+                    if (plate not in list(old_plates.keys())): # Check to see if this plate is not present in the list of old plates.
+                        displayed_plates.append(plate)
+                elif (selection == 2): # "Recent Plates - Recurring"
+                    if (plate in list(old_plates.keys())): # Check to see if this plate is present in the list of old plates.
+                        displayed_plates.append(plate)
+
+            if (len(displayed_plates) > 0): # Check to make sure the query returned at least one plate.
+                print("Output Format:")
+                print("1. Plain Text")
+                print("2. JSON")
+                print("3. CSV")
+
+                output_format = utils.take_selection([1, 2, 3])
+                utils.clear()
+
+                if (output_format == 1): # "Recent Plates" plain text output.
+                    for plate in displayed_plates:
+                        print(plate)
+                elif (output_format == 2): # "Recent Plates" JSON output.
+                    print(json.dumps(displayed_plates))
+                elif (output_format == 3): # "Recent Plates" CSV output.
+                    output_text = ""
+                    for plate in displayed_plates:
+                        output_text += plate + ","
+                    output_text = output_text[:-1] # Remove the last character, since it will always be a comma.
+                    print(output_text)
+            else: # Otherwise, the query returned no plates.
+                utils.display_message("The query returned no plates.", 2)
+        elif (selection == 5): # "Repeated Plates" from main menu.
+            print(utils.style.bold + "Repeated Plates" + utils.style.end)
+            release_time = 0
+            while release_time <= 0: # Run until the user supplies a value greater than 0.
+                release_time = utils.prompt("Release Time (minutes, default 60): ", optional=True, input_type=float, default=60)
+                if (release_time <= 0):
+                    utils.display_message("The release time must be greater than 0", 2)
+            utils.clear()
+
+            tracked_plates = {}
+            for file in all_data.keys(): # Iterate over each file in the loaded data.
+                for frame in all_data[file]: # Iterate over each frame in this file.
+                    for plate in all_data[file][frame]["results"]: # Iterate over each plate associated with this frame.
+                        if (plate in tracked_plates.keys()): # Check to see if this plate is not yet in the dictionary of tracked plates.
+                            following_instance_index = len(tracked_plates[plate]["following"]) - 1 # This is the index of the most recent following instance.
+
+                            seconds_since_last_seen = all_data[file][frame]["meta"]["time"] - tracked_plates[plate]["last_seen"]["time"]
+                            distance_since_last = utils.get_distance(all_data[file][frame]["meta"]["location"]["lat"], all_data[file][frame]["meta"]["location"]["lon"], tracked_plates[plate]["last_seen"]["location"]["lat"], tracked_plates[plate]["last_seen"]["location"]["lon"]) # Calculate the distance between the current frame's location and the last location this plate was seen.
+
+                            tracked_plates[plate]["last_seen"]["time"] = all_data[file][frame]["meta"]["time"]
+                            tracked_plates[plate]["last_seen"]["location"] = all_data[file][frame]["meta"]["location"]
+
+
+                            if (seconds_since_last_seen < release_time*60): # Check to see if this plate is within the release time.
+                                if (len(tracked_plates[plate]["following"][following_instance_index]) == 0): # Check to see if the most recent following instance hasn't yet been initialized.
+                                    tracked_plates[plate]["following"][following_instance_index] = {
+                                        "start": {"time": all_data[file][frame]["meta"]["time"], "location": all_data[file][frame]["meta"]["location"]},
+                                        "track": {"distance": 0.0, "time": 0.0, "frames": 0}
+                                    }
+                                tracked_plates[plate]["following"][following_instance_index]["track"]["distance"] += distance_since_last
+                                tracked_plates[plate]["following"][following_instance_index]["track"]["time"] += seconds_since_last_seen
+                                tracked_plates[plate]["following"][following_instance_index]["track"]["frames"] += 1
+                            else: # Otherwise, this plate has exceeded the release time.
+                                if (len(tracked_plates[plate]["following"][following_instance_index]) != 0): # Check to see if the next following instance hasn't yet been created.
+                                    tracked_plates[plate]["following"].append({}) # Create a new following instance.
+                        else: # Otherwise, this plate is not yet being tracked, and needs to be initialized.
+                            tracked_plates[plate] = {
+                                "last_seen": {
+                                    "time": all_data[file][frame]["meta"]["time"],
+                                    "location": all_data[file][frame]["meta"]["location"]
+                                },
+                                "following": [{
+                                    "start": {
+                                        "time": all_data[file][frame]["meta"]["time"],
+                                        "location": all_data[file][frame]["meta"]["location"]
+                                    },
+                                    "track": {
+                                        "distance": 0,
+                                        "time": 0,
+                                        "frames": 0
+                                    }
+                                }]
+                            }
+
+
+            print(utils.style.bold + "Repeated Plates" + utils.style.end)
+            print("1. Show All")
+            print("2. Distance")
+            print("3. Time")
+            following_mode = utils.take_selection([1, 2, 3])
+            utils.clear()
+
+            if (following_mode == 1): # Selected "Show All" from "Repeated Plates"
+                print(utils.style.bold + "Repeated Plates > Show All" + utils.style.end)
+                print("1. Indent")
+                print("2. Raw")
+                output = utils.take_selection([1, 2])
+                if (output == 1): # "Indent" selected from "Repeated Plates > Show All"
+                    print(json.dumps(tracked_plates, indent=4))
+                elif (output == 2): # "Raw" selected from "Repeated Plates > Show All"
+                    print(json.dumps(tracked_plates))
+            elif (following_mode == 2): # Selected "Distance" from "Repeated Plates".
+                threshold_distance = 0
+                while threshold_distance <= 0: # Run until the user supplies a value greater than 0.
+                    threshold_distance = utils.prompt("Threshold Distance (kilometers, default 4): ", optional=True, input_type=float, default=4)
+                    if (threshold_distance<= 0):
+                        utils.display_message("The threshold time must be greater than 0", 2)
+                # TODO: Show alerts that meet the threshold.
+            elif (following_mode == 3): # Selected "Time" from "Repeated Plates".
+                threshold_time = 0
+                while threshold_time <= 0: # Run until the user supplies a value greater than 0.
+                    threshold_time = utils.prompt("Threshold Time (minutes, default 30): ", optional=True, input_type=float, default=30)
+                    if (threshold_time <= 0):
+                        utils.display_message("The threshold time must be greater than 0", 2)
+                # TODO: Show alerts that meet the threshold.
+
                 
 
         utils.prompt(utils.style.faint + "Press enter to continue" + utils.style.end)

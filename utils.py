@@ -10,6 +10,7 @@
 import os
 import json
 import configuration
+import math
 
 base_directory = str(os.path.dirname(os.path.realpath(__file__))) # This variable determines the absolute path of base project directory (the directory that contains this script).
 
@@ -345,3 +346,32 @@ def get_osd_gps(video, interval=1):
         frame_locations.append({"lat": 0, "lon": 0})
 
     return frame_locations
+
+
+
+# This function calculates the distance between two sets of coordinates in kilometers.
+def get_distance(lat1, lon1, lat2, lon2):
+    try:
+        # Convert the coordinates received.
+        lat1 = float(lat1)
+        lon1 = float(lon1)
+        lat2 = float(lat2)
+        lon2 = float(lon2)
+
+        if (lon1 == lon2 and lat1 == lat2): # Check to see if the coordinates are the same.
+            distance = 0 # The points are the same, so they are 0 kilometers apart.
+        else: # The points are different, so calculate the distance between them
+            # Convert the coordinates into radians.
+            lat1 = math.radians(lat1)
+            lon1 = math.radians(lon1)
+            lat2 = math.radians(lat2)
+            lon2 = math.radians(lon2)
+
+            # Calculate the distance.
+            distance = 6371.01 * math.acos(math.sin(lat1)*math.sin(lat2) + math.cos(lat1)*math.cos(lat2)*math.cos(lon1 - lon2))
+
+        # Return the calculated distance.
+        return distance
+    except Exception as e:
+        display_message("The utils.get_distance() function encountered an unexpected error: " + str(e), 2)
+        return 0.0
