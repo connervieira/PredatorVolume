@@ -324,7 +324,7 @@ def get_osd_gps(video, interval=1):
                     if (len(split_input) == 2): # Check to make sure there are exactly two values (lat/lon)
                         split_input[0] = ''.join(c for c in split_input[0] if c.isdigit() or c in ['.', '-']) # Remove all non-numeric characters.
                         split_input[1] = ''.join(c for c in split_input[1] if c.isdigit() or c in ['.', '-']) # Remove all non-numeric characters.
-                        location = {"lat": split_input[0], "lon": split_input[1]}
+                        location = {"lat": float(split_input[0]), "lon": float(split_input[1])}
                     else:
                         location = {"lat": 0, "lon": 0}
                 else:
