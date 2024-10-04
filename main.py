@@ -90,17 +90,18 @@ elif (selection == 2): # Query mode.
         if (selection == 1): # "Statistics" from main menu.
             file_count = 0 # This will count the number of files analyzed.
             frame_count = 0 # This will count the number of frames analyzed.
-            plate_count = 0 # This will count the number of plates detected.
+            plate_count = [] # This will hold all unique plates.
             for file in all_data: # Iterate over each file in the loaded data.
                 file_count += 1
                 for frame in all_data[file]: # Iterate over each frame in this file.
                     frame_count += 1
                     for plate in all_data[file][frame]["results"]: # Iterate over each plate associated with this frame.
-                        plate_count += 1
+                        if plate not in plate_count: # Check to see if this plate hasn't yet been added to the array.
+                            plate_count.append(plate)
 
-            print("File Count: " + str(file_count))
-            print("Frame Count: " + str(frame_count))
-            print("Plates Detected: " + str(plate_count))
+            print("Plates Detected: " + str(len(plate_count)))
+            print("Files Analyzed: " + str(file_count))
+            print("Frames Known: " + str(frame_count))
         elif (selection == 2): # "All Plates" from main menu.
             all_plates = {}
             for file in all_data: # Iterate over each file in the loaded data.
@@ -112,14 +113,11 @@ elif (selection == 2): # Query mode.
                             all_plates[plate] = 1
 
             print(utils.style.bold + "All Plates" + utils.style.end)
-            print("0. Back")
             print("1. Complete")
             print("2. Unique")
-            selection = utils.take_selection([0, 1, 2])
+            selection = utils.take_selection([1, 2])
             utils.clear()
-            if (selection == 0): # Back from "All Plates"
-                pass
-            elif (selection == 1): # "Complete" from "All Plates"
+            if (selection == 1): # "Complete" from "All Plates"
                 pass # Don't de-duplicate the plates.
 
             elif (selection == 2): # "Unique" from "All Plates"
@@ -155,9 +153,15 @@ elif (selection == 2): # Query mode.
             utils.clear()
 
             if (display_type == 1): # "Plates Only" from "All Plates > [Unique/Complete]"
-                print(utils.style.bold + "All Plates > Complete > Plates Only" + utils.style.end)
+                if (selection == 1): # "Complete" from "All Plates"
+                    print(utils.style.bold + "All Plates > Complete > Plates Only" + utils.style.end)
+                elif (selection == 2): # "Unique" from "All Plates"
+                    print(utils.style.bold + "All Plates > Unique > Plates Only" + utils.style.end)
             elif (display_type == 2): # "Counted " from "All Plates > [Unique/Complete]"
-                print(utils.style.bold + "All Plates > Unique > Counted" + utils.style.end)
+                if (selection == 1): # "Complete" from "All Plates"
+                    print(utils.style.bold + "All Plates > Complete > Counted" + utils.style.end)
+                elif (selection == 2): # "Unique" from "All Plates"
+                    print(utils.style.bold + "All Plates > Unique > Counted" + utils.style.end)
             print("1. Plain Text")
             print("2. JSON")
             print("3. CSV")
@@ -219,7 +223,6 @@ elif (selection == 2): # Query mode.
 
                 selection = utils.take_selection([0, 1, 2])
 
-                print("Output Format:")
                 if (selection == 1):
                     print(utils.style.bold + "Search Plates >  " + plate_to_find + " > All" + utils.style.end)
                 elif (selection == 2):
@@ -254,7 +257,9 @@ elif (selection == 2): # Query mode.
                             print(plate_to_find + "," + datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + "," + str(times_passed[instance]["location"]["lat"]) + "," + str(times_passed[instance]["location"]["lon"]))
 
         elif (selection == 4): # "Recent Plates" from main menu.
-            past_days = utils.prompt("Past Days: ", optional=True, input_type=int, default=1)
+            print(utils.style.bold + "Recent Plates" + utils.style.end)
+            past_days = utils.prompt("Recency Threshold (days, default 2): ", optional=True, input_type=int, default=2)
+            utils.clear()
 
             recent_plates = {}
             old_plates = {}
@@ -272,7 +277,7 @@ elif (selection == 2): # Query mode.
                             else:
                                 old_plates[plate] = 1
 
-            print("Recent Plates:")
+            print(utils.style.bold + "Recent Plates" + utils.style.end)
             print("1. New")
             print("2. Recurring")
 
@@ -288,6 +293,10 @@ elif (selection == 2): # Query mode.
                         displayed_plates.append(plate)
 
             if (len(displayed_plates) > 0): # Check to make sure the query returned at least one plate.
+                if (selection == 1): # "Recent Plates - New"
+                    print(utils.style.bold + "Recent Plates > New" + utils.style.end)
+                elif (selection == 2): # "Recent Plates - Recurring"
+                    print(utils.style.bold + "Recent Plates > Recurring" + utils.style.end)
                 print("Output Format:")
                 print("1. Plain Text")
                 print("2. JSON")
@@ -376,6 +385,7 @@ elif (selection == 2): # Query mode.
                 print("1. Indent")
                 print("2. Raw")
                 output = utils.take_selection([1, 2])
+                utils.clear()
                 if (output == 1): # "Indent" selected from "Repeated Plates > Show All"
                     print(json.dumps(tracked_plates, indent=4))
                 elif (output == 2): # "Raw" selected from "Repeated Plates > Show All"
