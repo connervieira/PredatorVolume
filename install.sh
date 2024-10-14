@@ -11,11 +11,7 @@ if [ ! -f "$user_home/Downloads/predator_volume_install_script_trigger.txt" ]; t
     exit 1;
 fi
 
-sudo su; # Attempt to escalate permissions.
-
-if [ "$EUID" -ne 0 ]; then # Check to see if this user is root.
-    echo "===== Starting script =====";
-    echo "You may be prompted to enter your root password during the installation."
+if [ ! "$EUID" -ne 0 ]; then # Check to see if this user is root.
     echo "===== Preparing environment =====";
     sudo -u $user mkdir -p $user_home/Software/;
     cd $user_home/Software/;
@@ -41,5 +37,8 @@ if [ "$EUID" -ne 0 ]; then # Check to see if this user is root.
 
     echo "===== Cleaning up =====";
     rm $user_home/Downloads/predator_volume_install_script_trigger.txt # Delete the install trigger file.
+else
+    echo "Please run this script as root";
+    exit 1;
 fi
 
