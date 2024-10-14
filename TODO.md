@@ -8,7 +8,7 @@ This is an informal to-do list for Predator Volume. It is not a comprehensive ch
         - [ ] Determine GPS location.
             - [ ] Filter characters before `-` signs.
     - [X] Associate metadata with frames with plates.
-- [ ] Finish queries.
-    - [ ] Finish following queries.
-        - [ ] Finish distance-based alerts.
-        - [ ] Finish time-based alerts.
+- [X] Finish queries.
+    - [X] Finish following queries.
+        - [X] Finish distance-based alerts.
+        - [X] Finish time-based alerts.

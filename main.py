@@ -281,23 +281,22 @@ elif (selection == 2): # Query mode.
             print("1. New")
             print("2. Recurring")
 
-            selection = utils.take_selection([1, 2])
+            selection_mode = utils.take_selection([1, 2])
             utils.clear()
             displayed_plates = []
             for plate in recent_plates.keys():
-                if (selection == 1): # "Recent Plates - New"
+                if (selection_mode == 1): # "Recent Plates - New"
                     if (plate not in list(old_plates.keys())): # Check to see if this plate is not present in the list of old plates.
                         displayed_plates.append(plate)
-                elif (selection == 2): # "Recent Plates - Recurring"
+                elif (selection_mode == 2): # "Recent Plates - Recurring"
                     if (plate in list(old_plates.keys())): # Check to see if this plate is present in the list of old plates.
                         displayed_plates.append(plate)
 
             if (len(displayed_plates) > 0): # Check to make sure the query returned at least one plate.
-                if (selection == 1): # "Recent Plates - New"
+                if (selection_mode == 1): # "Recent Plates - New"
                     print(utils.style.bold + "Recent Plates > New" + utils.style.end)
-                elif (selection == 2): # "Recent Plates - Recurring"
+                elif (selection_mode == 2): # "Recent Plates - Recurring"
                     print(utils.style.bold + "Recent Plates > Recurring" + utils.style.end)
-                print("Output Format:")
                 print("1. Plain Text")
                 print("2. JSON")
                 print("3. CSV")
@@ -306,11 +305,23 @@ elif (selection == 2): # Query mode.
                 utils.clear()
 
                 if (output_format == 1): # "Recent Plates" plain text output.
+                    if (selection_mode == 1): # "Recent Plates - New - Plain Text"
+                        print(utils.style.bold + "Recent Plates > New > Plain Text" + utils.style.end)
+                    elif (selection_mode == 2): # "Recent Plates - Recurring - Plain Text"
+                        print(utils.style.bold + "Recent Plates > Recurring > Plain Text" + utils.style.end)
                     for plate in displayed_plates:
                         print(plate)
                 elif (output_format == 2): # "Recent Plates" JSON output.
+                    if (selection_mode == 1): # "Recent Plates - New - JSON"
+                        print(utils.style.bold + "Recent Plates > New > JSON" + utils.style.end)
+                    elif (selection_mode == 2): # "Recent Plates - Recurring - JSON"
+                        print(utils.style.bold + "Recent Plates > Recurring > JSON" + utils.style.end)
                     print(json.dumps(displayed_plates))
                 elif (output_format == 3): # "Recent Plates" CSV output.
+                    if (selection_mode == 1): # "Recent Plates - New - CSV"
+                        print(utils.style.bold + "Recent Plates > New > CSV" + utils.style.end)
+                    elif (selection_mode == 2): # "Recent Plates - Recurring - CSV"
+                        print(utils.style.bold + "Recent Plates > Recurring > CSV" + utils.style.end)
                     output_text = ""
                     for plate in displayed_plates:
                         output_text += plate + ","
@@ -394,16 +405,87 @@ elif (selection == 2): # Query mode.
                 threshold_distance = 0
                 while threshold_distance <= 0: # Run until the user supplies a value greater than 0.
                     threshold_distance = utils.prompt("Threshold Distance (kilometers, default 4): ", optional=True, input_type=float, default=4)
-                    if (threshold_distance<= 0):
-                        utils.display_message("The threshold time must be greater than 0", 2)
-                # TODO: Show alerts that meet the threshold.
+                    if (threshold_distance <= 0):
+                        utils.display_message("The threshold distance must be greater than 0", 2)
+                utils.clear()
+                alerts = []
+                for plate in tracked_plates:
+                    for instance in tracked_plates[plate]["following"]:
+                        if (instance["track"]["distance"] >= threshold_distance): # Check to see if this instance exceeds the threshold.
+                            alerts.append({
+                                "plate": plate,
+                                "distance": instance["track"]["distance"],
+                                "time": instance["track"]["time"],
+                                "start": {
+                                    "time": instance["start"]["time"],
+                                    "lat": instance["start"]["location"]["lat"],
+                                    "lon": instance["start"]["location"]["lon"]
+                                }
+                            })
             elif (following_mode == 3): # Selected "Time" from "Repeated Plates".
                 threshold_time = 0
                 while threshold_time <= 0: # Run until the user supplies a value greater than 0.
                     threshold_time = utils.prompt("Threshold Time (minutes, default 30): ", optional=True, input_type=float, default=30)
                     if (threshold_time <= 0):
                         utils.display_message("The threshold time must be greater than 0", 2)
-                # TODO: Show alerts that meet the threshold.
+                utils.clear()
+                alerts = []
+                for plate in tracked_plates:
+                    for instance in tracked_plates[plate]["following"]:
+                        if (instance["track"]["time"] >= threshold_time): # Check to see if this instance exceeds the threshold.
+                            alerts.append({
+                                "plate": str(plate),
+                                "distance": instance["track"]["distance"],
+                                "time": instance["track"]["time"],
+                                "start": {
+                                    "time": instance["start"]["time"],
+                                    "lat": instance["start"]["location"]["lat"],
+                                    "lon": instance["start"]["location"]["lon"]
+                                }
+                            })
+
+            if (following_mode in [2, 3]): # Only run if the user selected one of the alert modes.
+                if (len(alerts) > 0): # Check to see if at least one alert was triggered.
+                    if (following_mode == 2): # "Distance" from "Repeated Plates".
+                        print(utils.style.bold + "Repeated Plates > Distance" + utils.style.end)
+                    elif (following_mode == 3): # "Time" from "Repeated Plates".
+                        print(utils.style.bold + "Repeated Plates > Time" + utils.style.end)
+                    print("1. Plain Text")
+                    print("2. JSON")
+                    print("3. CSV")
+
+                    output_format = utils.take_selection([1, 2, 3])
+                    utils.clear()
+
+                    if (output_format == 1): # "Plain Text" from "Repeated Plates > [Distance/Time]"
+                        if (following_mode == 2): # "Distance" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Distance > Plain Text" + utils.style.end)
+                        elif (following_mode == 3): # "Time" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Time > Plain Text" + utils.style.end)
+                        for alert in alerts:
+                            output_line = alert["plate"] + " followed for "
+                            if (following_mode == 2):
+                                output_line += str(round(alert["distance"]*100)/100) + "km "
+                            elif (following_mode == 3):
+                                output_line += str(round((alert["time"]/60)*100)/100) + " minutes "
+                            output_line += "starting at " + str(datetime.datetime.fromtimestamp(alert["start"]["time"]).strftime('%Y-%m-%d %H:%M:%S')) + " (" + str(alert["start"]["lat"]) + ", " + str(alert["start"]["lon"]) + ")"
+                            print(output_line)
+                    elif (output_format == 2): # "JSON" from "Repeated Plates > [Distance/Time]"
+                        if (following_mode == 2): # "Distance" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Distance > JSON" + utils.style.end)
+                        elif (following_mode == 3): # "Time" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Time > JSON" + utils.style.end)
+                        print(json.dumps(alerts))
+                    elif (output_format == 3): # "CSV" from "Repeated Plates > [Distance/Time]"
+                        if (following_mode == 2): # "Distance" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Distance > CSV" + utils.style.end)
+                        elif (following_mode == 3): # "Time" from "Repeated Plates".
+                            print(utils.style.bold + "Repeated Plates > Time > CSV" + utils.style.end)
+                        print("PLATE,FOLLOW_DISTANCE,FOLLOW_TIME,START_TIME,START_LOCATION_LAT,START_LOCATION_LON")
+                        for alert in alerts:
+                            print(str(plate) + "," + str(float(alert["distance"])) + "," + str(float(alert["time"])) + "," + str(datetime.datetime.fromtimestamp(alert["start"]["time"]).strftime('%Y-%m-%d %H:%M:%S')) + "," + str(alert["start"]["lat"]) + "," + str(alert["start"]["lon"]))
+                else:
+                    utils.display_message("The query returned no results.", 2)
 
                 
 
