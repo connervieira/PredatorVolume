@@ -25,7 +25,7 @@ if [ ! "$EUID" -ne 0 ]; then # Check to see if this user is root.
     fi
     
     echo "===== Installing dependencies =====";
-    apt install python3 python3-pip python3-opencv ffmpeg libopencv-dev libtesseract-dev git cmake build-essential libleptonica-dev; apt install liblog4cplus-dev libcurl3-dev
+    apt install -y python3 python3-pip python3-opencv ffmpeg libopencv-dev libtesseract-dev git cmake build-essential libleptonica-dev; apt install liblog4cplus-dev libcurl3-dev
     sudo -u $user pip3 install --upgrade Levenshtein opencv-python;
 
 
