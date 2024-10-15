@@ -316,16 +316,39 @@ def get_osd_gps(video, interval=1):
 
                 # Replace commonly confused characters.
                 text = text.replace("$", "S") 
+                text = text.replace("$", "S") 
                 text = text.replace("F", "E") 
+                text = text.replace("T", "E") 
+                text = text.replace("O", "0") 
                 text = text.replace(" . ", ".") 
                 text = text.replace(". ", ".") 
                 text = text.replace(" .", ".") 
                 if len(text) > 0: # Check to see if text was recognized.
                     split_input = text.split()
-                    if (len(split_input) == 2): # Check to make sure there are exactly two values (lat/lon)
+                    if (len(split_input) == 2): # Check to make sure there are exactly two values (latitude and longitude)
+                        split_input[0] = split_input[0].upper() # Convert to uppercase.
+                        split_input[1] = split_input[1].upper() # Convert to uppercase.
+                        if (("N" in split_input[1] or "S" in split_input[1]) and ("E" in split_input[0] or "W" in split_input[0])): # Check to see if the latitude and longitude coordinates are swapped.
+                            # Swap the coordinates back to the expected order:
+                            temp_split_input_0 = split_input[0]
+                            split_input[0] = split_input[1]
+                            split_input[1] = temp_split_input_0
+                            del temp_split_input_0 # Delete the temporary value.
+                        if ("S" in split_input[0] and "-" not in split_input[0]): # Check to see if this is a southern coordinate, but there is no negative sign.
+                            split_input[0] = "-" + split_input[0] # Append the negative sign to the beginning of the string.
+                        if ("W" in split_input[1] and "-" not in split_input[1]): # Check to see if this is a western coordinate, but there is no negative sign.
+                            split_input[1] = "-" + split_input[1] # Append the negative sign to the beginning of the string.
                         split_input[0] = ''.join(c for c in split_input[0] if c.isdigit() or c in ['.', '-']) # Remove all non-numeric characters.
                         split_input[1] = ''.join(c for c in split_input[1] if c.isdigit() or c in ['.', '-']) # Remove all non-numeric characters.
-                        location = {"lat": float(split_input[0]), "lon": float(split_input[1])}
+                        if ("-" in str(split_input[0])): # Check to see if this value contains a negative sign.
+                            split_input[0] = split_input[0][split_input[0].find('-'):len(split_input[0])] # Trim anything that comes before the minus symbol.
+                        if ("-" in str(split_input[1])): # Check to see if this value contains a negative sign.
+                            split_input[1] = split_input[1][split_input[1].find('-'):len(split_input[1])] # Trim anything that comes before the minus symbol.
+                        try: # Try to convert the split inputs to a floating point number.
+                            location = {"lat": float(split_input[0]), "lon": float(split_input[1])}
+                        except: # If a problem occurs (the split_input is not a number), use a placeholder.
+                            display_message("Failed to convert coordinates to numbers: " + str(json.dumps(split_input)), 2)
+                            location = {"lat": 0, "lon": 0}
                     else:
                         location = {"lat": 0, "lon": 0}
                 else:
@@ -375,3 +398,17 @@ def get_distance(lat1, lon1, lat2, lon2):
     except Exception as e:
         display_message("The utils.get_distance() function encountered an unexpected error: " + str(e), 2)
         return 0.0
+
+
+# This function finds the video file associated with a given side-car file.
+def find_associated_video(file_path):
+    working_directory = os.path.dirname(file_path) # Get the working directory from the side-car file path.
+    all_files = os.listdir(working_directory) # Get a list of all files in the working directory.
+    sidecar_filename = os.path.splitext(os.path.basename(file_path))[0] # Get the base name of the side-car file.
+    for file in all_files:
+        filename_split = os.path.splitext(file) # Split this file name into its base-name and extension.
+        if (filename_split[1].lower() in [".mp4", ".m4v", ".webm", ".mjpg", ".mjpeg", ".mkv", ".flv", ".ts"]): # Check to see if this is a supported video file.
+            if (filename_split[0] == sidecar_filename): # Check to see if this file's name matches the side-car file name.
+                associated_video_file = working_directory + "/" + file # Form the complete file-path.
+                return associated_video_file # Return the associated video file-path.
+    return False # If the end of the loop has been reached without finding an associated video file, then return 'False'.

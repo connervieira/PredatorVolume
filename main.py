@@ -200,6 +200,7 @@ elif (selection == 2): # Query mode.
                             all_plates[plate] = {}
                         all_plates[plate][all_data[file][frame]["meta"]["time"]] = {}
                         all_plates[plate][all_data[file][frame]["meta"]["time"]]["location"] = all_data[file][frame]["meta"]["location"]
+                        all_plates[plate][all_data[file][frame]["meta"]["time"]]["file"] = file # Add the associated side-car file-name.
 
             plate_to_find = ""
             while plate_to_find.upper() not in all_plates: # Run until the user enters a plate that exists.
@@ -208,32 +209,39 @@ elif (selection == 2): # Query mode.
                     break
                 if (plate_to_find.upper() not in all_plates): # Check to see if the plate entered by the user doesn't exist.
                     utils.display_message("The provided plate does not exist in the database. (Enter `q` if you want to cancel)", 2)
+            utils.clear()
             if (plate_to_find != "q"):
                 plate_to_find = plate_to_find.upper() # Convert the search plate to uppercase.
                 last_timestamp = 0
                 times_passed = {} # This will hold the times this plate has been passed, with repeated sequential detections filtered out.
                 for instance in sorted(all_plates[plate_to_find]):
-                    if (instance - last_timestamp > 15): # Make sure this plate hasn't been seen in at least 15 seconds, so we can roughly distinguish times passed, and avoid showing the plate being repeatedly detected.
+                    if (float(instance - last_timestamp) > 15): # Make sure this plate hasn't been seen in at least 15 seconds, so we can roughly distinguish times passed, and avoid showing the plate being repeatedly detected.
                         times_passed[instance] = all_plates[plate_to_find][instance]
                     last_timestamp = instance # This will hold the timestamp of the last time this plate was seen so we can filter out repeated sequential detections.
 
-                print(utils.style.bold + "Search Plates >  " + plate_to_find + utils.style.end)
+                print(utils.style.bold + "Search Plates > " + plate_to_find + utils.style.end)
                 print("1. All Detections")
                 print("2. Unique Instances")
 
                 selection = utils.take_selection([0, 1, 2])
+                utils.clear()
 
-                if (selection == 1):
-                    print(utils.style.bold + "Search Plates >  " + plate_to_find + " > All" + utils.style.end)
-                elif (selection == 2):
-                    print(utils.style.bold + "Search Plates >  " + plate_to_find + " > Unique" + utils.style.end)
+                if (selection == 1): # Plate Search - All
+                    print(utils.style.bold + "Search Plates > " + plate_to_find + " > All" + utils.style.end)
+                else: # Plate Search - Unique
+                    print(utils.style.bold + "Search Plates > " + plate_to_find + " > Unique" + utils.style.end)
                 print("1. Plain Text")
                 print("2. JSON")
                 print("3. CSV")
+                if (selection == 1): # Plate Search - All
+                    print("4. Source Files")
 
-                output_format = utils.take_selection([1, 2, 3])
+                if (selection == 1): # Plate Search - All
+                    output_format = utils.take_selection([1, 2, 3, 4])
+                else: # Plate Search - Unique
+                    output_format = utils.take_selection([1, 2, 3])
                 utils.clear()
-                if (selection == 1):
+                if (selection == 1): # Plate Search - All
                     if (output_format == 1): # Plate Search - All - Plain Text
                         print("This plate has been seen " + str(len(all_plates[plate_to_find])) + " times.")
                         for instance in all_plates[plate_to_find]:
@@ -244,7 +252,40 @@ elif (selection == 2): # Query mode.
                         print("PLATE,DATE,LAT,LON")
                         for instance in all_plates[plate_to_find]:
                             print(plate_to_find + "," + datetime.datetime.fromtimestamp(instance).strftime('%Y-%m-%d %H:%M:%S') + "," + str(all_plates[plate_to_find][instance]["location"]["lat"]) + "," + str(all_plates[plate_to_find][instance]["location"]["lon"]))
-                elif (selection == 2):
+                    elif (output_format == 4): # Plate Search - All - Source Files
+                        all_files = []
+                        for instance in all_plates[plate_to_find]:
+                            if (all_plates[plate_to_find][instance]["file"] not in all_files):
+                                all_files.append(all_plates[plate_to_find][instance]["file"])
+                        print(all_files)
+                        counter = 0
+                        valid_selections = [0]
+                        if (selection == 1): # Plate Search - All - Source Files
+                            print(utils.style.bold + "Search Plates > " + plate_to_find + " > All > Source Files" + utils.style.end)
+                        else: # Plate Search - Unique - Source Files
+                            print(utils.style.bold + "Search Plates > " + plate_to_find + " > Unique > Source Files" + utils.style.end)
+                        print ("0. Quit")
+                        for file in all_files:
+                            counter += 1 # Increment the temporary counter.
+                            associated_video = utils.find_associated_video(working_directory + "/" + file) # Find the video file associated with this side-car file.
+                            filename_split = os.path.splitext(file) # Split the name of this file into the base-name and extension.
+                            if (associated_video == False): # Check to see if there is no associated video file.
+                                print(utils.style.faint + str(counter) + ". " + str(filename_split[0]) + utils.style.end)
+                            else: # Otherwise, there is a valid associated video file.
+                                valid_selections.append(counter) # Add this option as a valid selection, since the video file exists.
+                                print(str(counter) + ". " + str(filename_split[0]))
+
+                        while True:
+                            selection = utils.take_selection(valid_selections)
+                            if (selection == 0):
+                                break
+                            else:
+                                os.system("xdg-open '" + associated_video + "'")
+
+                        del valid_selections # Delete the temporary valid selections holder.
+                        del counter # Delete the temporary counter.
+                        del all_files # Delete the files list now that it is no longer needed.
+                elif (selection == 2): # Plate Search - Unique
                     if (output_format == 1): # Plate Search - Unique - Plain Text
                         print("This plate has been seen on " + str(len(times_passed)) + " separate instances.")
                         for instance in times_passed:
