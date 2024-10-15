@@ -1,3 +1,6 @@
+# This script serves as a diagnostic tool to test Predator Volume's functionality. It is primarily designed to allow users to test, maintain, and configure their Predator Volume instance. This utility does not have in-depth input validation, and generally trusts that the user knows what they are doing.
+
+
 import os
 import configuration
 import utils
@@ -5,24 +8,29 @@ import alpr
 from datetime import datetime # Required to print human-friendly date/time stamps.
 import cv2
 
-config = configuration.load_config()
+config = configuration.load_config() # Load the active configuration.
 
-
-print("Testing mode")
+print("Testing Mode")
 print("1. ALPR Analysis")
 print("2. OSD Analysis")
 selection = utils.take_selection([1, 2])
 
 if (selection == 1): # ALPR testing.
-    pass # TODO
-elif (selection == 2): # OSD testing.
+    file = input("File: ")
+    if (config["alpr"]["engine"] == "phantom"): # Check to see if the configuration indicates that the Phantom ALPR engine should be used.
+        analysis_command = "alpr -c " + config["alpr"]["region"] + " -n " + str(config["alpr"]["validation"]["guesses"]) + " '" + file + "'"
+        os.system(analysis_command) # Run the command.
+    elif (config["alpr"]["engine"] == "openalpr"): # Check to see if the configuration indicates that the OpenALPR engine should be used.
+        analysis_command = "alpr -j -c " + config["alpr"]["region"] + " -n " + str(config["alpr"]["validation"]["guesses"]) + " '" + file + "'"
+        os.system(analysis_command) # Run the command.
 
+elif (selection == 2): # OSD testing.
     print("Mode")
     print("1. Test")
     print("2. Preview")
     mode = utils.take_selection([1, 2])
 
-    print("OSD attribute")
+    print("OSD Attribute")
     print("1. Date/Time")
     print("2. GPS")
     attribute = utils.take_selection([1, 2])
