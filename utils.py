@@ -345,7 +345,12 @@ def get_osd_gps(video, interval=1):
                         if ("-" in str(split_input[1])): # Check to see if this value contains a negative sign.
                             split_input[1] = split_input[1][split_input[1].find('-'):len(split_input[1])] # Trim anything that comes before the minus symbol.
                         try: # Try to convert the split inputs to a floating point number.
-                            location = {"lat": float(split_input[0]), "lon": float(split_input[1])}
+                            split_input[0] = float(split_input[0])
+                            split_input[1] = float(split_input[1])
+                            if (split_input[0] >= -180 and split_input[0] <= 180 and split_input[1] >= -90 and split_input[1] <= 90): # Check to see if the determined coordinates are within the valid range.
+                                location = {"lat": split_input[0], "lon": split_input[1]}
+                            else:
+                                location = {"lat": 0, "lon": 0}
                         except: # If a problem occurs (the split_input is not a number), use a placeholder.
                             display_message("Failed to convert coordinates to numbers: " + str(json.dumps(split_input)), 2)
                             location = {"lat": 0, "lon": 0}

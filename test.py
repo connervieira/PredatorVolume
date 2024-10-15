@@ -7,6 +7,7 @@ import utils
 import alpr
 from datetime import datetime # Required to print human-friendly date/time stamps.
 import cv2
+import json
 
 config = configuration.load_config() # Load the active configuration.
 
@@ -46,7 +47,7 @@ elif (selection == 2): # OSD testing.
                 print("Failed to recognize stamp")
         elif (attribute == 2): # GPS OSD stamp detection test.
             output = utils.get_osd_gps(file)
-            print(output)
+            print(json.dumps(output,indent=4))
     elif (mode == 2): # Preview an OSD bounding box.
         if (attribute == 1):
             bounding_box = config["behavior"]["metadata"]["time"]["overlay"]["bounding_box"]
