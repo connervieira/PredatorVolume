@@ -3,11 +3,11 @@ user_home=/home/$(ls /home/ | head -n 1);
 user=$(ls /home/ | head -n 1)
 
 
-if [ ! -f "$user_home/Downloads/predator_volume_install_script_trigger.txt" ]; then # Check to see if Predator Volume has not yet been downloaded.
+if [ ! -f "$user_home/Downloads/predator_volume_install_script_trigger.txt" ]; then # Check to see if this script has not been run before.
     echo "This script should only be run on a dedicated system running a clean installation of Ubuntu, Pop!_OS, Linux Mint, or similar Linux distribution. This script may delete or overwrite files during installation. Do not use this script on a system containing files you care about."; 
     echo "To continue, re-run this script.";
     echo "This file is created the first time you run the Predator Volume install script. It is used to determine if the script has been run previously. You can safely delete this file after installation is complete." > $user_home/Downloads/predator_volume_install_script_trigger.txt;
-    echo "The non-root user detected on this system is $user";
+    echo "The non-root user detected on this system is '$user'";
     exit 1;
 fi
 
