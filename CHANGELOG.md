@@ -5,7 +5,7 @@ This document contains a list of all of the changes in each version of Predator 
 
 ## Version 1.0
 
-*Release date to be determined*
+2024-10-16
 
 - Finished core functionality.
     - Implemented "analysis mode" to analyze dash-cam videos and generate side-car files with ALPR data.
