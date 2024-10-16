@@ -15,15 +15,11 @@ import json # Required to process JSON data
 import time
 
 
-config_default_filepath = "./assets/config/configdefault.json"
-config_outline_filepath = "./assets/config/configoutline.json"
-config_active_filepath = "./assets/config/configactive.json"
+base_directory = str(os.path.dirname(os.path.realpath(__file__))) # This variable determines the absolute path of base project directory (the directory that contains this script).
 
-if (os.path.exists("./assets/config/configactive.json") == False): # Check to see if the config file is missing.
-    if (os.path.exists("../assets/config/configactive.json") == True): # Check to see if the config file exists relative to the parent directory (we might be in a sub-directory).
-        config_active_filepath = "../assets/config/configactive.json"
-        config_default_filepath = "../assets/config/configdefault.json"
-        config_outline_filepath = "../assets/config/configoutline.json"
+config_default_filepath = base_directory + "/assets/config/configdefault.json"
+config_outline_filepath = base_directory + "/assets/config/configoutline.json"
+config_active_filepath = base_directory + "/assets/config/configactive.json"
 
 if (os.path.exists(config_active_filepath) == False): # Check to see if the active config file needs to be created.
     with open(config_default_filepath) as configuration_file_default: temp_config = configuration_file_default.read() # Open the default configuration.

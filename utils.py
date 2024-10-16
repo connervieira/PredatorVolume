@@ -18,7 +18,7 @@ try:
     if (os.path.exists(base_directory + "/assets/config/configactive.json")):
         config = json.load(open(base_directory + "/assets/config/configactive.json")) # Load the configuration from configactive.json
     else:
-        print("The configuration file doesn't appear to exist at '" + predator_root_directory + "/assets/config/configactive.json'.")
+        print("The configuration file doesn't appear to exist at '" + base_directory + "/assets/config/configactive.json'.")
         exit()
 except:
     print("The configuration database couldn't be loaded. It may be corrupted.")
