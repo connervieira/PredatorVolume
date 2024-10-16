@@ -36,6 +36,7 @@ if [ ! "$EUID" -ne 0 ]; then # Check to see if this user is root.
     cd $user_home; rm -rf $user_home/Software/Phantom/ # Remove the Phantom project directory.
 
     echo "===== Cleaning up =====";
+    echo "alias run_predatorvolume=\"python3 ~/Software/PredatorVolume/main.py\"" >> ~/.bashrc
     rm $user_home/Downloads/predator_volume_install_script_trigger.txt # Delete the install trigger file.
 else
     echo "Please run this script as root";
