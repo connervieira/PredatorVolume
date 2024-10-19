@@ -111,7 +111,7 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             if (len(command_error) > 0): # Check to see if an error occurred while executing the ALPR back-end.
                 display_message("An error occurred while running ALPR:", 3)
                 print(command_error)
-            if (abs(len(command_output) - video_frame_count) <= 10): # Check to make sure the number of frames analyzed is (almost) the same as the frame count.
+            if (abs(len(command_output) - video_frame_count) <= 10 or config["behavior"]["optimization"]["ignore_frame_differences"] == True): # Check to make sure the number of frames analyzed is (almost) the same as the frame count.
                 analysis_results = {} # This will hold the analysis results for this video file.
                 previous_plates = {} # This will hold plates that have been detected multiple times consecutively.
                 for frame_number, frame_data in enumerate(command_output): # Iterate through each frame's analysis results from the commmand output.
