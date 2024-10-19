@@ -20,7 +20,8 @@
                     "after": 20,
                     "before": 6
                 }
-            }
+            },
+            "ignore_frame_differences": true
         },
         "metadata": {
             "time": {

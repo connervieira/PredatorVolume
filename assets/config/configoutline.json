@@ -20,7 +20,8 @@
                     "after": "+float",
                     "before": "+float"
                 }
-            }
+            },
+            "ignore_frame_differences": "bool"
         },
         "metadata": {
             "time": {

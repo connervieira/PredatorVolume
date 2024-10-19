@@ -15,3 +15,9 @@ This document contains a list of all of the changes in each version of Predator 
         - Implemented "Search Plates" query to allow the user to find instances of a plate being detected.
         - Implemented "Recent Plates" query to allow the user to filter by plates that are new, or have been seen before.
         - Implemented "Repeated Plates" query to allow the user to find plates that may have been following them.
+
+## Version 1.1
+
+*Release date to be determined*
+
+- Added the `behavior>optimization>ignore_frame_differences` configuration value.
