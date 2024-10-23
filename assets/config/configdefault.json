@@ -22,8 +22,8 @@
                 }
             },
             "frame_counting": {
-                "method": "default",
-                "skip_validation": true
+                "method": "custom",
+                "skip_validation": false
             }
         },
         "metadata": {

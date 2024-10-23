@@ -20,4 +20,4 @@ This document contains a list of all of the changes in each version of Predator 
 
 *Release date to be determined*
 
-- Added the `behavior>optimization>ignore_frame_differences` configuration value.
+- Updated frame counting behavior.

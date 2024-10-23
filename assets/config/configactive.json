@@ -14,7 +14,7 @@
         }
     },
     "display": {
-        "debug_messages": false
+        "debug_messages": true
     },
     "behavior": {
         "optimization": {
@@ -25,8 +25,8 @@
                 }
             },
             "frame_counting": {
-                "method": "default",
-                "skip_validation": true
+                "method": "custom",
+                "skip_validation": false
             }
         },
         "metadata": {
