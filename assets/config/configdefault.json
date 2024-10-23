@@ -21,7 +21,10 @@
                     "before": 6
                 }
             },
-            "ignore_frame_differences": true
+            "frame_counting": {
+                "method": "default",
+                "skip_validation": true
+            }
         },
         "metadata": {
             "time": {

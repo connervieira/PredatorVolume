@@ -292,12 +292,25 @@ def get_osd_time(video, verbose=False):
     return 0
 
 
+# This function counts the number of frames in a given video file.
+def count_frames(video):
+    cap = cv2.VideoCapture(video)
+    #video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # Count the number of frames in the video.
+    video_frame_count = 0
+    while (cap.isOpened()):
+        video_frame_count += 1
+        ret, frame = cap.read() # Get the next frame.
+        if (ret == False):
+            break
+    return video_frame_count
+
+
 # This function takes a video file-path, and uses character recognition to get the GPS information from the stamp within the provided bounding box. This function returns a frame-by-frame list of each GPS location.
 def get_osd_gps(video, interval=1):
     bounding_box = config["behavior"]["metadata"]["gps"]["overlay"]["bounding_box"]
+    video_frame_count = count_frames(video)
     cap = cv2.VideoCapture(video) # Load this video as an OpenCV capture.
     video_frame_rate = int(cap.get(cv2.CAP_PROP_FPS)) # Get the video frame-rate.
-    video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # Count the number of frames in the video.
     frame_interval = interval*video_frame_rate # Convert the interval from seconds to number of frames.
     current_frame = -1
 
@@ -362,7 +375,7 @@ def get_osd_gps(video, interval=1):
             break
         frame_locations.append(location)
 
-    if (len(frame_locations) > video_frame_count): # Check to see if there are more frame locations than frames.
+    if (len(frame_locations) > video_frame_count or config["behavior"]["optimization"]["ignore_frame_differences"] == True): # Check to see if there are more frame locations than frames.
         if (len(frame_locations) > video_frame_count + video_frame_rate): # Only display an error if the frame location count is off by more than 1 second of video (based on the frame-rate).
             display_message("There were more frame locations (" + str(len(frame_locations)) + ") than frames in the video (" + str(video_frame_count) + ") during GPS OSD analysis.", 2)
         frame_locations = frame_locations[:video_frame_count] # Trim the frame locations down to the length of the video.

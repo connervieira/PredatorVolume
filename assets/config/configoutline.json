@@ -21,7 +21,10 @@
                     "before": "+float"
                 }
             },
-            "ignore_frame_differences": "bool"
+            "frame_counting": {
+                "method": ["default", "custom"],
+                "skip_validation": "bool"
+            }
         },
         "metadata": {
             "time": {

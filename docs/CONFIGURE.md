@@ -59,9 +59,13 @@ Below is a list of all configuration values supported by Predator Volume.
             - `time` sets a daily time-frame between which videos will be ignored. This is generally used to ignore videos captured at night. Videos outside of this range will be processed like normal.
                 - `after` sets the hour (in 24hr format) after which videos will be ignored.
                 - `before` sets the hour (in 24hr format) before which videos will be ignored.
-        - `ignore_frame_differences` is a boolean value that determines if Predator Volume will skip checking for differences in frame count between the video file and analysis results.
-            - Setting this to 'false' will cause Predator Volume to enforce that the analysis results and video frame count be similar in length. This can help to filter out corrupted video files.
-            - Setting this to 'true' will allow Predator Volume to continue with the analysis process, even if a certain file doesn't pass frame count validation.
+        - `frame_counting` contains settings that determine how Predator Volume will double-check frame counts between video files, OSD analysis, and ALPR analysis.
+            - `method` determines the method that will be used to find the frame count in video files. This can only be set to the following values:
+                - "default" will use the built in OpenCV method to determine the number of frames in a video file.
+                - "custom" will use a custom implementation that individually counts each frame in a video file. This method is much slower, but much more accurate.
+            - `skip_validation` is a boolean value that determines if Predator Volume will skip checking for differences in frame count between the video file and analysis results.
+                - Setting this to 'false' will cause Predator Volume to enforce that the analysis results and video frame count be similar in length. This can help to filter out corrupted video files.
+                - Setting this to 'true' will allow Predator Volume to continue with the analysis process, even if a certain file doesn't pass frame count validation.
     - `metadata` determines how metadata for videos will be determined.
         - `time` controls how the starting time of videos will be determined.
             - `method` defines the method used to get the starting time. Currently, the only supported method is `"overlay"`.
