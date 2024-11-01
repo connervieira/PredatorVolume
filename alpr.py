@@ -89,8 +89,8 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
                 alpr_command = ["alpr", "-j", "-c", config["alpr"]["region"], "-n", str(config["alpr"]["validation"]["guesses"]),  scan_directory + "/" + file] # Set up the OpenALPR command.
 
             utils.debug_message("Counting frames on '" + file + "'")
+            video_frame_count = count_frames(scan_directory + "/" + file)
             cap = cv2.VideoCapture(scan_directory + "/" + file) # Load this video as an OpenCV capture.
-            video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # Count the number of frames in the video.
             video_frame_rate = int(cap.get(cv2.CAP_PROP_FPS)) # Get the video frame-rate.
             cap = None # Release the video capture.
 
