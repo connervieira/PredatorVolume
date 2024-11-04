@@ -146,7 +146,8 @@ def display_message(message, level=1):
         print(style.yellow + "Warning: " + message + style.end)
     elif (level == 3): # Display the message as an error.
         print(style.red + "Error: " + message + style.end)
-        prompt(style.faint + "Press enter to continue..." + style.end)
+        if (config["display"]["wait_on_error"] == True):
+            prompt(style.faint + "Press enter to continue..." + style.end)
 
 
 # This function determines if a value is a valid number.

@@ -14,7 +14,8 @@
         }
     },
     "display": {
-        "debug_messages": true
+        "debug_messages": true,
+        "wait_on_error": false
     },
     "behavior": {
         "optimization": {
