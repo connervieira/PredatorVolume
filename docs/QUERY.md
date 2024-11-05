@@ -35,7 +35,7 @@ This document describes each option avaiable in query mode.
             - **2 - JSON**: Print the results as a JSON string.
             - **3 - CSV**: Print the results as comma separated values.
 - **4 - Recent Plates**: This will open a menu with queries for plates that were detected recently.
-    - **Recency Threshold**: This is an input that determine how many days old a detection can be to be considered "recent". For example, a recency threshold of 3 days will consider all detections within the past 3 days to be "recent".
+    - **Recency Threshold**: This is an input that determine how many days old a detection can be to be considered "recent". For example, a recency threshold of 3 days will consider all detections within the past 3 days to be "recent". This value is relative to the most recent detected frame, not the true current time.
         - **1 - New**: This will return plates that were detected recently, but haven't been seen before.
             - **1 - Plain Text**: Print the results as a plain-text human-friendly format.
             - **2 - JSON**: Print the results as a JSON string.

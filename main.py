@@ -77,6 +77,13 @@ elif (selection == 2): # Query mode.
             all_data[file] = json.load(f)
 
 
+    most_recent_timestamp = 0 # This will hold the most recent timestamp in the data.
+    for file in all_data: # Iterate over each file in the loaded data.
+        for frame in all_data[file]: # Iterate over each frame in this file.
+            if (all_data[file][frame]["meta"]["time"] > most_recent_timestamp):
+                most_recent_timestamp = all_data[file][frame]["meta"]["time"]
+
+
     while True: # Run forever, until the user quits.
         utils.clear()
         print(utils.style.bold + "===== Main Menu =====" + utils.style.end)
@@ -312,7 +319,7 @@ elif (selection == 2): # Query mode.
             for file in all_data: # Iterate over each file in the loaded data.
                 for frame in all_data[file]: # Iterate over each frame in this file.
                     for plate in all_data[file][frame]["results"]: # Iterate over each plate associated with this frame.
-                        if (all_data[file][frame]["meta"]["time"] >= time.time() - (86400 * past_days)): # Check to see if this plate occurs within the specified time-frame.
+                        if (all_data[file][frame]["meta"]["time"] >= most_recent_timestamp - (86400 * past_days)): # Check to see if this plate occurs within the specified time-frame.
                             if plate in recent_plates:
                                 recent_plates[plate] += 1
                             else:
