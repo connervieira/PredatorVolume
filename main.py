@@ -49,6 +49,10 @@ if (selection == 1): # Analysis mode.
         if (len(videos_to_analyze) == 1): utils.display_message("Found " + str(len(videos_to_analyze)) + " video file to analyze.", 1)
         else: utils.display_message("Found " + str(len(videos_to_analyze)) + " video files to analyze.", 1)
         alpr.generate_dashcam_sidecar_files(working_directory, videos_to_analyze)
+        delete_videos = utils.prompt("Would you like to delete the " + str(len(videos_to_analyze)) + " source video files?", optional=False, input_type=bool, default="n")
+        if (delete_videos == True):
+            for file in videos_to_analyze:
+                os.remove(os.path.join(working_directory,file))
     else:
         utils.display_message("There were no video files to analyze in the specified directory.", 2)
 elif (selection == 2): # Query mode.
@@ -82,6 +86,7 @@ elif (selection == 2): # Query mode.
         print("3. Search Plates")
         print("4. Recent Plates")
         print("5. Repeated Plates")
+        print("6. Anomalies")
         selection = utils.take_selection([0, 1, 2, 3, 4, 5])
         utils.clear()
 
@@ -473,7 +478,7 @@ elif (selection == 2): # Query mode.
                 alerts = []
                 for plate in tracked_plates:
                     for instance in tracked_plates[plate]["following"]:
-                        if (instance["track"]["time"] >= threshold_time): # Check to see if this instance exceeds the threshold.
+                        if (instance["track"]["time"]*60 >= threshold_time): # Check to see if this instance exceeds the threshold.
                             alerts.append({
                                 "plate": str(plate),
                                 "distance": instance["track"]["distance"],
