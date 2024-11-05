@@ -22,7 +22,7 @@ To use analysis mode, follow these steps:
     - Each video will likely take several minutes to analyze.
     - If a problem occurs a message will appear in the console.
         - Generally, Predator Volume will attempt to skip the video with the problem, and continue analyzing subsequent video.
-    - After the analysis is complete, the script will terminate.
+4. After the analysis completes, you will be prompted to either delete or save the source video files.
 
 ### Query Mode
 
