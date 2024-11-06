@@ -66,6 +66,12 @@ Below is a list of all configuration values supported by Predator Volume.
             - `skip_validation` is a boolean value that determines if Predator Volume will skip checking for differences in frame count between the video file and analysis results.
                 - Setting this to 'false' will cause Predator Volume to enforce that the analysis results and video frame count be similar in length. This can help to filter out corrupted video files.
                 - Setting this to 'true' will allow Predator Volume to continue with the analysis process, even if a certain file doesn't pass frame count validation.
+    - `defaults` contains configurable default values for various inputs.
+        - `query` contains default inputs for elements in query mode.
+            - `repeated_plates` contains default inputs for the "Repeated Plates" query.
+                - `release_time` determines the default release time (in minutes).
+                - `threshold_time` determines the default alert threshold time (in minutes).
+                - `threshold_distance` determines the default alert threshold distance (in kilometers).
     - `metadata` determines how metadata for videos will be determined.
         - `time` controls how the starting time of videos will be determined.
             - `method` defines the method used to get the starting time. Currently, the only supported method is `"overlay"`.

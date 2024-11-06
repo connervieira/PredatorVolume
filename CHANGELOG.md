@@ -21,3 +21,4 @@ This document contains a list of all of the changes in each version of Predator 
 *Release date to be determined*
 
 - Updated frame counting behavior.
+- Added configurable defaults for certain inputs.

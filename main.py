@@ -93,7 +93,6 @@ elif (selection == 2): # Query mode.
         print("3. Search Plates")
         print("4. Recent Plates")
         print("5. Repeated Plates")
-        print("6. Anomalies")
         selection = utils.take_selection([0, 1, 2, 3, 4, 5])
         utils.clear()
 
@@ -385,10 +384,12 @@ elif (selection == 2): # Query mode.
         elif (selection == 5): # "Repeated Plates" from main menu.
             print(utils.style.bold + "Repeated Plates" + utils.style.end)
             release_time = 0
+            default_release_time = float(config["behavior"]["defaults"]["query"]["repeated_plates"]["release_time"])
             while release_time <= 0: # Run until the user supplies a value greater than 0.
-                release_time = utils.prompt("Release Time (minutes, default 60): ", optional=True, input_type=float, default=60)
+                release_time = utils.prompt("Release Time (minutes, default " + str(default_release_time) + "): ", optional=True, input_type=float, default=default_release_time)
                 if (release_time <= 0):
                     utils.display_message("The release time must be greater than 0", 2)
+            del default_release_time
             utils.clear()
 
             tracked_plates = {}
@@ -405,7 +406,7 @@ elif (selection == 2): # Query mode.
                             tracked_plates[plate]["last_seen"]["location"] = all_data[file][frame]["meta"]["location"]
 
 
-                            if (seconds_since_last_seen < release_time*60): # Check to see if this plate is within the release time.
+                            if (seconds_since_last_seen < release_time*60): # Check to see if this plate is within the release time (relative to the last time this plate was detected).
                                 if (len(tracked_plates[plate]["following"][following_instance_index]) == 0): # Check to see if the most recent following instance hasn't yet been initialized.
                                     tracked_plates[plate]["following"][following_instance_index] = {
                                         "start": {"time": all_data[file][frame]["meta"]["time"], "location": all_data[file][frame]["meta"]["location"]},
@@ -455,11 +456,13 @@ elif (selection == 2): # Query mode.
                 elif (output == 2): # "Raw" selected from "Repeated Plates > Show All"
                     print(json.dumps(tracked_plates))
             elif (following_mode == 2): # Selected "Distance" from "Repeated Plates".
-                threshold_distance = 0
-                while threshold_distance <= 0: # Run until the user supplies a value greater than 0.
-                    threshold_distance = utils.prompt("Threshold Distance (kilometers, default 4): ", optional=True, input_type=float, default=4)
-                    if (threshold_distance <= 0):
+                threshold_distance = -1
+                default_threshold_distance = float(config["behavior"]["defaults"]["query"]["repeated_plates"]["threshold_distance"])
+                while threshold_distance < 0: # Run until the user supplies a value greater than 0.
+                    threshold_distance = utils.prompt("Threshold Distance (kilometers, default " + str(default_threshold_distance) + "): ", optional=True, input_type=float, default=default_threshold_distance)
+                    if (threshold_distance < 0):
                         utils.display_message("The threshold distance must be greater than 0", 2)
+                del default_threshold_distance
                 utils.clear()
                 alerts = []
                 for plate in tracked_plates:
@@ -476,16 +479,18 @@ elif (selection == 2): # Query mode.
                                 }
                             })
             elif (following_mode == 3): # Selected "Time" from "Repeated Plates".
-                threshold_time = 0
-                while threshold_time <= 0: # Run until the user supplies a value greater than 0.
-                    threshold_time = utils.prompt("Threshold Time (minutes, default 30): ", optional=True, input_type=float, default=30)
-                    if (threshold_time <= 0):
+                threshold_time = -1
+                default_threshold_time = float(config["behavior"]["defaults"]["query"]["repeated_plates"]["threshold_time"])
+                while threshold_time < 0: # Run until the user supplies a value greater than 0.
+                    threshold_time = utils.prompt("Threshold Time (minutes, default " + str(default_threshold_time) + "): ", optional=True, input_type=float, default=default_threshold_time)
+                    if (threshold_time < 0):
                         utils.display_message("The threshold time must be greater than 0", 2)
+                del default_threshold_time
                 utils.clear()
                 alerts = []
                 for plate in tracked_plates:
                     for instance in tracked_plates[plate]["following"]:
-                        if (instance["track"]["time"]*60 >= threshold_time): # Check to see if this instance exceeds the threshold.
+                        if (instance["track"]["time"] >= threshold_time*60): # Check to see if this instance exceeds the threshold.
                             alerts.append({
                                 "plate": str(plate),
                                 "distance": instance["track"]["distance"],

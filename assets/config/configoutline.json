@@ -27,6 +27,15 @@
                 "skip_validation": "bool"
             }
         },
+        "defaults": {
+            "query": {
+                "repeated_plates": {
+                    "release_time": "+float",
+                    "threshold_time": "+float",
+                    "threshold_distance": "+float"
+                }
+            }
+        },
         "metadata": {
             "time": {
                 "method": "str",
