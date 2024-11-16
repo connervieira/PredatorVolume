@@ -96,6 +96,9 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
 
             utils.debug_message("Establishing metadata on '" + file + "'")
             starting_timestamp = utils.get_osd_time(scan_directory + "/" + file) # Get the timestamp of the first frame of the video overlay.
+            if (starting_timestamp <= 0):
+                utils.display_message("Skipping due to video timestamp failure.", 2)
+                continue
             starting_hour = float(datetime.fromtimestamp(starting_timestamp).strftime('%H')) # Get the starting hour (24hr) of this video.
             if (starting_hour >= float(config["behavior"]["optimization"]["ignore"]["time"]["after"]) or starting_hour <= float(config["behavior"]["optimization"]["ignore"]["time"]["before"])):
                 utils.debug_message("Skipping '" + file + "' based on time ignore optimizations")

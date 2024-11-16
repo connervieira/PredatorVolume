@@ -22,3 +22,4 @@ This document contains a list of all of the changes in each version of Predator 
 
 - Updated frame counting behavior.
 - Added configurable defaults for certain inputs.
+- Improved fault tolerance when a corrupt frame is encountered during on-screen timestamp display recognition.

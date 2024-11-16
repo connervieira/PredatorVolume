@@ -289,9 +289,19 @@ def get_osd_time(video, verbose=False):
     while (cap.isOpened()):
         ret, frame = cap.read() # Get the next frame.
         if (ret == True):
-            cropped = frame[bounding_box["y"]:bounding_box["y"]+bounding_box["h"],bounding_box["x"]:bounding_box["x"]+bounding_box["w"]] # Crop the frame down to the configured bounding box.
-            gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY) # Convert the image to grayscale.
-            _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY +cv2.THRESH_OTSU)
+            width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            bbox_x1 = max([bounding_box["x"], 0])
+            bbox_y1 = max([bounding_box["y"], 0])
+            bbox_x2 = min([bounding_box["x"]+bounding_box["w"], width])
+            bbox_y2 = min([bounding_box["y"]+bounding_box["h"], height])
+            try:
+                cropped = frame[bbox_y1:bbox_y2,bbox_x1:bbox_x2] # Crop the frame down to the configured bounding box.
+                gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY) # Convert the image to grayscale.
+                _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY +cv2.THRESH_OTSU)
+            except:
+                display_message("Image processing failed during OSD time-stamp analysis.", 2)
+                break
             text = pytesseract.image_to_string(Image.fromarray(thresholded), config='--psm 11') # Read the text from the image.
             text = text.strip() # Remove any leading or trailing whitespace.
             if len(text) > 0: # Check to see if text was recognized.
