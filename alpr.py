@@ -95,7 +95,11 @@ def generate_dashcam_sidecar_files(scan_directory, dashcam_files):
             cap = None # Release the video capture.
 
             utils.debug_message("Establishing metadata on '" + file + "'")
-            starting_timestamp = utils.get_osd_time(scan_directory + "/" + file) # Get the timestamp of the first frame of the video overlay.
+            try:
+                starting_timestamp = utils.get_osd_time(scan_directory + "/" + file) # Get the timestamp of the first frame of the video overlay.
+            except:
+                utils.display_message("Top-level video timestamp recognition failure.", 2)
+                starting_timestamp = 0
             if (starting_timestamp <= 0):
                 utils.display_message("Skipping due to video timestamp failure.", 2)
                 continue
