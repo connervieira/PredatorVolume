@@ -467,17 +467,18 @@ elif (selection == 2): # Query mode.
                 alerts = []
                 for plate in tracked_plates:
                     for instance in tracked_plates[plate]["following"]:
-                        if (instance["track"]["distance"] >= threshold_distance): # Check to see if this instance exceeds the threshold.
-                            alerts.append({
-                                "plate": plate,
-                                "distance": instance["track"]["distance"],
-                                "time": instance["track"]["time"],
-                                "start": {
-                                    "time": instance["start"]["time"],
-                                    "lat": instance["start"]["location"]["lat"],
-                                    "lon": instance["start"]["location"]["lon"]
-                                }
-                            })
+                        if (len(instance) > 0):
+                            if (instance["track"]["distance"] >= threshold_distance): # Check to see if this instance exceeds the threshold.
+                                alerts.append({
+                                    "plate": plate,
+                                    "distance": instance["track"]["distance"],
+                                    "time": instance["track"]["time"],
+                                    "start": {
+                                        "time": instance["start"]["time"],
+                                        "lat": instance["start"]["location"]["lat"],
+                                        "lon": instance["start"]["location"]["lon"]
+                                    }
+                                })
             elif (following_mode == 3): # Selected "Time" from "Repeated Plates".
                 threshold_time = -1
                 default_threshold_time = float(config["behavior"]["defaults"]["query"]["repeated_plates"]["threshold_time"])
@@ -490,17 +491,18 @@ elif (selection == 2): # Query mode.
                 alerts = []
                 for plate in tracked_plates:
                     for instance in tracked_plates[plate]["following"]:
-                        if (instance["track"]["time"] >= threshold_time*60): # Check to see if this instance exceeds the threshold.
-                            alerts.append({
-                                "plate": str(plate),
-                                "distance": instance["track"]["distance"],
-                                "time": instance["track"]["time"],
-                                "start": {
-                                    "time": instance["start"]["time"],
-                                    "lat": instance["start"]["location"]["lat"],
-                                    "lon": instance["start"]["location"]["lon"]
-                                }
-                            })
+                        if (len(instance) > 0):
+                            if (instance["track"]["time"] >= threshold_time*60): # Check to see if this instance exceeds the threshold.
+                                alerts.append({
+                                    "plate": str(plate),
+                                    "distance": instance["track"]["distance"],
+                                    "time": instance["track"]["time"],
+                                    "start": {
+                                        "time": instance["start"]["time"],
+                                        "lat": instance["start"]["location"]["lat"],
+                                        "lon": instance["start"]["location"]["lon"]
+                                    }
+                                })
 
             if (following_mode in [2, 3]): # Only run if the user selected one of the alert modes.
                 if (len(alerts) > 0): # Check to see if at least one alert was triggered.
